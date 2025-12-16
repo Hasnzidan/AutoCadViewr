@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qQHa8Jt9RN4=",
+  "dgSpecHash": "DBUsMes1gi0=",
   "success": true,
-  "projectFilePath": "E:\\3DAutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj",
+  "projectFilePath": "E:\\AutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\zedan\\.nuget\\packages\\acadsharp\\3.3.13\\acadsharp.3.3.13.nupkg.sha512",
     "C:\\Users\\zedan\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.1\\microsoft.aspnetcore.openapi.10.0.1.nupkg.sha512",

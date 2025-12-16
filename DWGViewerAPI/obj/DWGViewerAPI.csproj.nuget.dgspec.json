@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\3DAutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj": {}
+    "E:\\AutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj": {}
   },
   "projects": {
-    "E:\\3DAutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj": {
+    "E:\\AutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\3DAutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj",
+        "projectUniqueName": "E:\\AutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj",
         "projectName": "DWGViewerAPI",
-        "projectPath": "E:\\3DAutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj",
+        "projectPath": "E:\\AutoCadViewr\\DWGViewerAPI\\DWGViewerAPI.csproj",
         "packagesPath": "C:\\Users\\zedan\\.nuget\\packages\\",
-        "outputPath": "E:\\3DAutoCadViewr\\DWGViewerAPI\\obj\\",
+        "outputPath": "E:\\AutoCadViewr\\DWGViewerAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
