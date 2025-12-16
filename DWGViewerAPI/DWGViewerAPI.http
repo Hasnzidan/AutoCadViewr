@@ -1,0 +1,6 @@
+@DWGViewerAPI_HostAddress = http://localhost:5183
+
+GET {{DWGViewerAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
