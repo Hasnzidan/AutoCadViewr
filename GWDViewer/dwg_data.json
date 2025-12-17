@@ -1,0 +1,182 @@
+[
+  {
+    "id": "A101_WALL_EXT_01",
+    "type": "Line",
+    "geometry": {
+      "points": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          150.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "dwgProperties": {
+      "Handle": "A101_WALL_EXT_01",
+      "Layer": "A-WALL-EXT",
+      "Color": "255, 0, 0",
+      "Thickness": 30,
+      "FireRating": "2 Hours"
+    }
+  },
+  {
+    "id": "A101_WALL_EXT_02",
+    "type": "Line",
+    "geometry": {
+      "points": [
+        [
+          150.0,
+          0.0,
+          0.0
+        ],
+        [
+          150.0,
+          100.0,
+          0.0
+        ]
+      ]
+    },
+    "dwgProperties": {
+      "Handle": "A101_WALL_EXT_02",
+      "Layer": "A-WALL-EXT",
+      "Color": "255, 0, 0",
+      "Thickness": 30
+    }
+  },
+  {
+    "id": "A101_WALL_EXT_03",
+    "type": "Line",
+    "geometry": {
+      "points": [
+        [
+          150.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ]
+      ]
+    },
+    "dwgProperties": {
+      "Handle": "A101_WALL_EXT_03",
+      "Layer": "A-WALL-EXT",
+      "Color": "255, 0, 0",
+      "Thickness": 30
+    }
+  },
+  {
+    "id": "A101_WALL_EXT_04",
+    "type": "Line",
+    "geometry": {
+      "points": [
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "dwgProperties": {
+      "Handle": "A101_WALL_EXT_04",
+      "Layer": "A-WALL-EXT",
+      "Color": "255, 0, 0",
+      "Thickness": 30
+    }
+  },
+  {
+    "id": "A102_WALL_INT",
+    "type": "Line",
+    "geometry": {
+      "points": [
+        [
+          75.0,
+          0.0,
+          0.0
+        ],
+        [
+          75.0,
+          70.0,
+          0.0
+        ]
+      ]
+    },
+    "dwgProperties": {
+      "Handle": "A102_WALL_INT",
+      "Layer": "A-WALL-INT",
+      "Color": "0, 255, 255",
+      "Thickness": 15,
+      "AcousticRating": "Good"
+    }
+  },
+  {
+    "id": "S201_COL",
+    "type": "Circle",
+    "geometry": {
+      "center": [
+        25.0,
+        25.0,
+        0.0
+      ],
+      "radius": 5.0
+    },
+    "dwgProperties": {
+      "Handle": "S201_COL",
+      "Layer": "S-COL",
+      "Color": "128, 128, 128",
+      "Dimension": "500mm DIA",
+      "RebarSpec": "8-T20"
+    }
+  },
+  {
+    "id": "A301_DOOR_ENT",
+    "type": "Circle",
+    "geometry": {
+      "center": [
+        140.0,
+        50.0,
+        0.0
+      ],
+      "radius": 10.0
+    },
+    "dwgProperties": {
+      "Handle": "A301_DOOR_ENT",
+      "Layer": "A-DOOR",
+      "Color": "0, 0, 255",
+      "Width": 100,
+      "Type": "Single Swing",
+      "XData_Supplier": "DoorCo-V1"
+    }
+  },
+  {
+    "id": "A401_TEXT_LIV",
+    "type": "Text",
+    "geometry": {
+      "position": [
+        40.0,
+        50.0,
+        0.0
+      ],
+      "content": "Living Area"
+    },
+    "dwgProperties": {
+      "Handle": "A401_TEXT_LIV",
+      "Layer": "A-ANNO",
+      "Color": "255, 165, 0",
+      "FontSize": 5.0,
+      "AreaSqM": 37.5
+    }
+  }
+]
