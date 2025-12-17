@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DWGViewerAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe5775246ef3f40d166d0d15ee369a66b824abf0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de99314640218390f7b7fc3feec9acd6cdc86d7a")]
 [assembly: System.Reflection.AssemblyProductAttribute("DWGViewerAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DWGViewerAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
