@@ -67,3 +67,4 @@ E:\AutoCadViewr\DWGViewerAPI\obj\Debug\net10.0\refint\DWGViewerAPI.dll
 E:\AutoCadViewr\DWGViewerAPI\obj\Debug\net10.0\DWGViewerAPI.pdb
 E:\AutoCadViewr\DWGViewerAPI\obj\Debug\net10.0\DWGViewerAPI.genruntimeconfig.cache
 E:\AutoCadViewr\DWGViewerAPI\obj\Debug\net10.0\ref\DWGViewerAPI.dll
+E:\AutoCadViewr\DWGViewerAPI\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

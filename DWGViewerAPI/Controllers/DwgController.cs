@@ -16,9 +16,7 @@ namespace DWGViewerAPI.Controllers
             _parserService = new DwgParserService();
         }
 
-        /// <summary>
         /// رفع ملف DWG وتحويله إلى JSON
-        /// </summary>
         [HttpPost("upload")]
         public async Task<IActionResult> UploadDwg(IFormFile file)
         {
@@ -59,9 +57,7 @@ namespace DWGViewerAPI.Controllers
             }
         }
 
-        /// <summary>
         /// قراءة ملف DWG من المسار المحلي (للتجربة)
-        /// </summary>
         [HttpGet("parse")]
         public IActionResult ParseLocalFile([FromQuery] string filePath)
         {
