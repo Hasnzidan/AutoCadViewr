@@ -1,6 +1,7 @@
 using ACadSharp;
 using ACadSharp.Entities;
 using ACadSharp.IO;
+using ACadSharp.Tables;
 using DWGViewerAPI.Models;
 
 namespace DWGViewerAPI.Services
@@ -21,7 +22,7 @@ namespace DWGViewerAPI.Services
                     // المرور على كل الكيانات في الملف
                     foreach (var entity in doc.Entities)
                     {
-                        var dwgEntity = ConvertEntity(entity);
+                        var dwgEntity = ConvertEntity(entity, doc);
                         if (dwgEntity != null)
                         {
                             entities.Add(dwgEntity);
@@ -37,8 +38,11 @@ namespace DWGViewerAPI.Services
             return entities;
         }
 
-        private DwgEntity? ConvertEntity(Entity entity)
+        private DwgEntity? ConvertEntity(Entity entity, CadDocument doc)
         {
+            // الحصول على اللون الفعلي للعنصر
+            var actualColor = GetActualColor(entity, doc);
+
             var dwgEntity = new DwgEntity
             {
                 Id = entity.Handle.ToString(),
@@ -46,7 +50,9 @@ namespace DWGViewerAPI.Services
                 {
                     { "Handle", entity.Handle.ToString() },
                     { "Layer", entity.Layer?.Name ?? "0" },
-                    { "Color", $"{entity.Color.R}, {entity.Color.G}, {entity.Color.B}" }
+                    { "Color", $"{actualColor.R}, {actualColor.G}, {actualColor.B}" },
+                    { "ColorIndex", entity.Color.Index },
+                    { "ColorMethod", GetColorMethodName(entity.Color) }
                 }
             };
 
@@ -100,6 +106,54 @@ namespace DWGViewerAPI.Services
             }
 
             return dwgEntity;
+        }
+
+        /// <summary>
+        /// الحصول على اللون الفعلي للعنصر مع معالجة ByLayer و ByBlock
+        /// </summary>
+        private ACadSharp.Color GetActualColor(Entity entity, CadDocument doc)
+        {
+            var color = entity.Color;
+
+            // فحص إذا كان اللون ByLayer
+            if (color.IsByLayer)
+            {
+                // الحصول على لون الطبقة
+                if (entity.Layer != null)
+                {
+                    return entity.Layer.Color;
+                }
+                else
+                {
+                    // في حالة عدم وجود طبقة، استخدام اللون الأبيض كافتراضي
+                    return new ACadSharp.Color(255, 255, 255);
+                }
+            }
+            // فحص إذا كان اللون ByBlock
+            else if (color.IsByBlock)
+            {
+                // في حالة ByBlock، نستخدم اللون الأبيض كافتراضي
+                // (في التطبيقات الحقيقية، يتم استخدام لون البلوك الذي يحتوي على العنصر)
+                return new ACadSharp.Color(255, 255, 255);
+            }
+            // اللون محدد مباشرة
+            else
+            {
+                return color;
+            }
+        }
+
+        /// <summary>
+        /// الحصول على اسم طريقة تحديد اللون
+        /// </summary>
+        private string GetColorMethodName(ACadSharp.Color color)
+        {
+            if (color.IsByLayer)
+                return "ByLayer";
+            else if (color.IsByBlock)
+                return "ByBlock";
+            else
+                return "Direct";
         }
     }
 }
