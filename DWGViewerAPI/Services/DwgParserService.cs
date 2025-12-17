@@ -108,9 +108,7 @@ namespace DWGViewerAPI.Services
             return dwgEntity;
         }
 
-        /// <summary>
-        /// الحصول على اللون الفعلي للعنصر مع معالجة ByLayer و ByBlock
-        /// </summary>
+        // الحصول على اللون الفعلي للعنصر مع معالجة ByLayer و ByBlock
         private ACadSharp.Color GetActualColor(Entity entity, CadDocument doc)
         {
             var color = entity.Color;
@@ -143,9 +141,7 @@ namespace DWGViewerAPI.Services
             }
         }
 
-        /// <summary>
-        /// الحصول على اسم طريقة تحديد اللون
-        /// </summary>
+        // الحصول على اسم طريقة تحديد اللون
         private string GetColorMethodName(ACadSharp.Color color)
         {
             if (color.IsByLayer)
