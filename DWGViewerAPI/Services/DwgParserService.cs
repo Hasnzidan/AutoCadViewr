@@ -151,5 +151,40 @@ namespace DWGViewerAPI.Services
             else
                 return "Direct";
         }
+
+        private async Task<string> DownloadFileFromUrl(UrlRequest request)
+        {
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".dwg");
+
+            using (var client = new HttpClient())
+            {
+                // إضافة headers مخصصة إذا كانت موجودة
+                foreach (var header in request.Headers)
+                {
+                    client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                }
+
+                using (var response = await client.GetAsync(request.Url, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    // التحقق من نوع الملف
+                    var contentType = response.Content.Headers.ContentType?.MediaType;
+                    if (contentType != "application/acad" && contentType != "application/octet-stream" &&
+                        !request.Url.EndsWith(".dwg", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new Exception("URL does not point to a valid DWG file");
+                    }
+
+                    using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        await response.Content.CopyToAsync(fileStream);
+                    }
+                }
+            }
+
+            return tempPath;
+        }
+
     }
 }
