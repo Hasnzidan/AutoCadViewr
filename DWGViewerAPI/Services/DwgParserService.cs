@@ -45,10 +45,10 @@ namespace DWGViewerAPI.Services
 
             var dwgEntity = new DwgEntity
             {
-                Id = entity.Handle.ToString(),
+                Id = entity.Handle.ToString("X"),
                 DwgProperties = new Dictionary<string, object>
                 {
-                    { "Handle", entity.Handle.ToString() },
+                    { "Handle", entity.Handle.ToString("X") },
                     { "Layer", entity.Layer?.Name ?? "0" },
                     { "Color", $"{actualColor.R}, {actualColor.G}, {actualColor.B}" },
                     { "ColorIndex", entity.Color.Index },

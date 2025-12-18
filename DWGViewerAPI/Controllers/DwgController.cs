@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using DWGViewerAPI.Services;
 using DWGViewerAPI.Models;
-
+using DWGViewerAPI.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DWGViewerAPI.Controllers
 {
@@ -18,7 +17,7 @@ namespace DWGViewerAPI.Controllers
             _parserService = new DwgParserService();
         }
 
-        /// رفع ملف DWG وتحويله إلى JSON
+        // رفع ملف DWG وتحويله إلى JSON
         [HttpPost("upload")]
         public async Task<IActionResult> UploadDwg(IFormFile file)
         {
@@ -36,7 +35,7 @@ namespace DWGViewerAPI.Controllers
             {
                 // حفظ الملف مؤقتاً
                 var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".dwg");
-                
+
                 using (var stream = new FileStream(tempPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
@@ -48,7 +47,9 @@ namespace DWGViewerAPI.Controllers
                 // حذف الملف المؤقت
                 System.IO.File.Delete(tempPath);
 
-                _logger.LogInformation($"Successfully parsed {entities.Count} entities from {file.FileName}");
+                _logger.LogInformation(
+                    $"Successfully parsed {entities.Count} entities from {file.FileName}"
+                );
 
                 return Ok(entities);
             }
@@ -71,7 +72,9 @@ namespace DWGViewerAPI.Controllers
             try
             {
                 var entities = _parserService.ParseDwgFile(filePath);
-                _logger.LogInformation($"Successfully parsed {entities.Count} entities from {filePath}");
+                _logger.LogInformation(
+                    $"Successfully parsed {entities.Count} entities from {filePath}"
+                );
                 return Ok(entities);
             }
             catch (Exception ex)
@@ -82,7 +85,7 @@ namespace DWGViewerAPI.Controllers
         }
 
         //تحليل ملف DWG من رابط مباشر
-       [HttpPost("parse-from-url")]
+        [HttpPost("parse-from-url")]
         public async Task<IActionResult> ParseFromUrl([FromBody] UrlRequest request)
         {
             if (string.IsNullOrEmpty(request.Url))
@@ -113,24 +116,79 @@ namespace DWGViewerAPI.Controllers
 
         private async Task<string> DownloadFileFromUrl(string url)
         {
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".dwg");
+            // var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".dwg");
+
+            // using (var client = new HttpClient())
+            // {
+            //     // إضافة headers إذا لزم الأمر (مثل التوثيق)
+            //     if (url.Contains("authentication-required"))
+            //     {
+            //         client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_TOKEN");
+            //     }
+
+            //     using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+            //     {
+            //         response.EnsureSuccessStatusCode();
+
+            //         using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            //         {
+            //             await response.Content.CopyToAsync(fileStream);
+            //         }
+            //     }
+            // }
+
+            // return tempPath;
+
+            var tempPath = Path.GetTempFileName() + ".dwg";
 
             using (var client = new HttpClient())
             {
-                // إضافة headers إذا لزم الأمر (مثل التوثيق)
-                if (url.Contains("authentication-required"))
-                {
-                    client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_TOKEN");
-                }
+                // إضافة headers لـ AWS
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+                client.Timeout = TimeSpan.FromMinutes(5);
 
-                using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                try
                 {
-                    response.EnsureSuccessStatusCode();
-
-                    using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    using (
+                        var response = await client.GetAsync(
+                            url,
+                            HttpCompletionOption.ResponseHeadersRead
+                        )
+                    )
                     {
-                        await response.Content.CopyToAsync(fileStream);
+                        // AWS قد يرجع 403 إذا انتهت الصلاحية
+                        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                        {
+                            var errorContent = await response.Content.ReadAsStringAsync();
+                            if (
+                                errorContent.Contains("ExpiredToken")
+                                || errorContent.Contains("AccessDenied")
+                            )
+                            {
+                                throw new Exception(
+                                    "رابط AWS منتهي الصلاحية. الرجاء الحصول على رابط جديد."
+                                );
+                            }
+                        }
+
+                        response.EnsureSuccessStatusCode();
+
+                        using (
+                            var fileStream = new FileStream(
+                                tempPath,
+                                FileMode.Create,
+                                FileAccess.Write,
+                                FileShare.None
+                            )
+                        )
+                        {
+                            await response.Content.CopyToAsync(fileStream);
+                        }
                     }
+                }
+                catch (HttpRequestException ex) when (ex.Message.Contains("403"))
+                {
+                    throw new Exception("الرابط منتهي الصلاحية أو يحتاج صلاحيات خاصة");
                 }
             }
 
