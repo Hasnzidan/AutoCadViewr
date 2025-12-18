@@ -1,13 +1,5 @@
-namespace DWGViewerAPI.Models
+namespace DWGViewerAPI.Models.Geometry
 {
-    public class DwgEntity
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public object Geometry { get; set; } = new { };
-        public Dictionary<string, object> DwgProperties { get; set; } = new();
-    }
-
     public class LineGeometry
     {
         public List<double[]> Points { get; set; } = new();

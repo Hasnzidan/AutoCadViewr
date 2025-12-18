@@ -9,33 +9,49 @@
 </head>
 
 <body>
-    <!-- <div id="upload-section"> -->
-    <div id="upload-section">
-        <!-- رفع ملف محلي -->
-        <div class="control-group">
-            <input type="file" id="dwg-file-input" accept=".dwg" style="display: none;">
-            <button id="upload-btn">📁 ارفع ملف</button>
+    <div id="side-panel">
+        <!-- منطقة التحكم العلوية -->
+        <div id="upload-section">
+            <h2 class="sidebar-title">⚙️ أدوات التحكم</h2>
+            <!-- رفع ملف محلي -->
+            <div class="control-group">
+                <input type="file" id="dwg-file-input" accept=".dwg" style="display: none;">
+                <button id="upload-btn">📁 ارفع ملف DWG</button>
+            </div>
+
+            <!-- تحميل من رابط -->
+            <div class="control-group vertical">
+                <label>🌐 تحميل من رابط:</label>
+                <div class="input-with-btn">
+                    <input type="text" id="dwg-url-input" placeholder="أدخل الرابط...">
+                    <button id="load-url-btn">جلب</button>
+                </div>
+            </div>
+
+            <!-- البحث بالـ ID -->
+            <div class="control-group vertical">
+                <label>🔍 بحث بالـ Handle:</label>
+                <div class="input-with-btn">
+                    <input type="text" id="search-id-input" placeholder="مثال: A99...">
+                    <button id="search-id-btn">بحث</button>
+                </div>
+            </div>
+
+            <span id="file-name"></span>
         </div>
 
-        <div class="divider"></div>
-
-        <!-- إضافة رابط URL -->
-        <div class="control-group">
-            <input type="text" id="dwg-url-input" placeholder="أدخل رابط ملف DWG هنا...">
-            <button id="load-url-btn">🌐 تحميل من رابط</button>
+        <!-- لوحة الخصائص -->
+        <div id="properties-panel">
+            <h3>📋 خصائص الكائن</h3>
+            <p class="empty-msg">انقر على أحد عناصر الرسم للبدء...</p>
         </div>
+    </div>
 
-        <span id="file-name"></span>
-    </div>
-    <!-- <input type="file" id="dwg-file-input" accept=".dwg" style="display: none;"> -->
-    <!-- <button id="upload-btn">📁 اختر ملف DWG</button> -->
-    <!-- <span id="file-name"></span> -->
-    </div>
+    <!-- منطقة العرض -->
     <div id="viewer"></div>
-    <div id="properties-panel">
-        <h3>خصائص الكائن المحدد</h3>
-        <p>انقر على أحد عناصر الرسم.</p>
-    </div>
+
+    <!-- رسالة نتيجة البحث -->
+    <div id="search-result"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="viewer.js"></script>
 </body>
