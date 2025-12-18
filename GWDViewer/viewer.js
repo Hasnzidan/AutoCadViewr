@@ -208,6 +208,53 @@ function uploadDwgFile(file) {
         });
 }
 
+// --- التفاعل مع رابط URL ---
+const loadUrlBtn = document.getElementById('load-url-btn');
+const urlInput = document.getElementById('dwg-url-input');
+
+loadUrlBtn.addEventListener('click', () => {
+    const url = urlInput.value.trim();
+    if (url) {
+        loadDwgFromUrl(url);
+    } else {
+        alert('يرجى إدخال رابط صحيح.');
+    }
+});
+
+function loadDwgFromUrl(dwgUrl) {
+    const propertiesPanel = document.getElementById('properties-panel');
+    propertiesPanel.innerHTML = '<h3>⏳ جاري التحميل من الرابط...</h3>';
+
+    fetch('http://localhost:5183/api/dwg/parse-from-url', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: dwgUrl })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('فشل تحميل الملف من الرابط. تأكد من أن الرابط مباشر وصحيح.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // مسح المشهد الحالي
+            objectsToIntersect.forEach(obj => scene.remove(obj));
+            objectsToIntersect.length = 0;
+
+            // رسم البيانات الجديدة
+            renderEntities(data);
+            propertiesPanel.innerHTML = '<h3>✅ تم التحميل بنجاح</h3><p>انقر على أحد عناصر الرسم.</p>';
+            fileNameSpan.textContent = `🌐 ملف من رابط خارجي`;
+        })
+        .catch(error => {
+            console.error('Error loading URL:', error);
+            propertiesPanel.innerHTML = `<h3>❌ خطأ</h3><p>${error.message}</p>`;
+        });
+}
+
+
 // دالة لتسليط الضوء على الكائن المحدد وإعادة اللون للكائن السابق
 function highlightObject(mesh) {
     if (selectedMesh) {
@@ -381,4 +428,6 @@ window.addEventListener('resize', () => {
 
     // تحديث الكاميرا (بنستدعي الدالة اللي عملناها عشان تحافظ على الزوم والمكان)
     updateCamera();
+
+
 });

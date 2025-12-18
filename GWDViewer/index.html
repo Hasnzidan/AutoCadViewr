@@ -9,11 +9,28 @@
 </head>
 
 <body>
+    <!-- <div id="upload-section"> -->
     <div id="upload-section">
-    <input type="file" id="dwg-file-input" accept=".dwg" style="display: none;">
-    <button id="upload-btn">📁 اختر ملف DWG</button>
-    <span id="file-name"></span>
-</div>
+        <!-- رفع ملف محلي -->
+        <div class="control-group">
+            <input type="file" id="dwg-file-input" accept=".dwg" style="display: none;">
+            <button id="upload-btn">📁 ارفع ملف</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- إضافة رابط URL -->
+        <div class="control-group">
+            <input type="text" id="dwg-url-input" placeholder="أدخل رابط ملف DWG هنا...">
+            <button id="load-url-btn">🌐 تحميل من رابط</button>
+        </div>
+
+        <span id="file-name"></span>
+    </div>
+    <!-- <input type="file" id="dwg-file-input" accept=".dwg" style="display: none;"> -->
+    <!-- <button id="upload-btn">📁 اختر ملف DWG</button> -->
+    <!-- <span id="file-name"></span> -->
+    </div>
     <div id="viewer"></div>
     <div id="properties-panel">
         <h3>خصائص الكائن المحدد</h3>
