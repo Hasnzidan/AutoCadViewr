@@ -9,7 +9,7 @@ namespace DWGViewerAPI.Services.Converters
     {
         public bool CanConvert(Entity entity) => entity is Arc;
 
-        public void Convert(Entity entity, DwgEntity result)
+        public void Convert(Entity entity, DwgEntity result, ACadSharp.CadDocument doc)
         {
             var arc = (Arc)entity;
             result.Type = "Arc";

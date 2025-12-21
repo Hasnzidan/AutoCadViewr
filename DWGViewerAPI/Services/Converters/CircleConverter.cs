@@ -9,7 +9,7 @@ namespace DWGViewerAPI.Services.Converters
     {
         public bool CanConvert(Entity entity) => entity is Circle;
 
-        public void Convert(Entity entity, DwgEntity result)
+        public void Convert(Entity entity, DwgEntity result, ACadSharp.CadDocument doc)
         {
             var circle = (Circle)entity;
             result.Type = "Circle";

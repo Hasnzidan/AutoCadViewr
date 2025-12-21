@@ -19,9 +19,25 @@ namespace DWGViewerAPI.Models.Geometry
         public double EndAngle { get; set; }
     }
 
+    public class LwPolylineGeometry
+    {
+        public List<double[]> Points { get; set; } = new();
+        public bool IsClosed { get; set; }
+    }
+
     public class TextGeometry
     {
         public double[] Position { get; set; } = new double[3];
         public string Content { get; set; } = string.Empty;
+        public double Rotation { get; set; }
+        public double Height { get; set; }
+    }
+
+    public class InsertGeometry
+    {
+        public double[] Position { get; set; } = new double[3];
+        public double[] Scale { get; set; } = new double[3];
+        public double Rotation { get; set; }
+        public string BlockName { get; set; } = string.Empty;
     }
 }

@@ -9,7 +9,7 @@ namespace DWGViewerAPI.Services.Converters
     {
         public bool CanConvert(Entity entity) => entity is Line;
 
-        public void Convert(Entity entity, DwgEntity result)
+        public void Convert(Entity entity, DwgEntity result, ACadSharp.CadDocument doc)
         {
             var line = (Line)entity;
             result.Type = "Line";
