@@ -50,13 +50,15 @@ function renderEntities(data, parentGroup = scene) {
         const material = getLinetypeMaterial(ltName, color);
 
         if (entity.type === 'Line' && entity.geometry) {
-            const points = entity.geometry.points.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+            const points = [
+                new THREE.Vector3(entity.geometry.startPoint[0], entity.geometry.startPoint[1], entity.geometry.startPoint[2] || 0),
+                new THREE.Vector3(entity.geometry.endPoint[0], entity.geometry.endPoint[1], entity.geometry.endPoint[2] || 0)
+            ];
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             mesh = new THREE.Line(geometry, material);
         }
         else if (entity.type === 'MLine' && entity.geometry) {
-            // MLine: draw as connected line segments
-            const points = entity.geometry.points.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+            const points = entity.geometry.vertices.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
             if (points.length >= 2) {
                 const geometry = new THREE.BufferGeometry().setFromPoints(points);
                 mesh = new THREE.Line(geometry, material);
@@ -82,47 +84,161 @@ function renderEntities(data, parentGroup = scene) {
             mesh = new THREE.Line(geometry, material);
             mesh.position.set(center[0], center[1], center[2] || 0);
         }
-        else if (entity.type === 'LwPolyline' && entity.geometry) {
-            const points = entity.geometry.points.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+        else if ((entity.type === 'LwPolyline' || entity.type === 'Polyline') && entity.geometry) {
+            const points = entity.geometry.vertices.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
             if (entity.geometry.isClosed) {
                 mesh = new THREE.LineLoop(geometry, material);
             } else {
                 mesh = new THREE.Line(geometry, material);
             }
         }
+        else if (entity.type === 'Spline' && entity.geometry) {
+            const points = entity.geometry.controlPoints.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+            if (points.length >= 2) {
+                const curve = new THREE.CatmullRomCurve3(points);
+                const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(50));
+                mesh = new THREE.Line(geometry, material);
+            }
+        }
+        else if (entity.type === 'Ellipse' && entity.geometry) {
+            const center = entity.geometry.center;
+            const majorAxis = entity.geometry.majorAxis;
+            const minorAxisRatio = entity.geometry.minorAxisRatio;
+            const startAngle = entity.geometry.startAngle;
+            const endAngle = entity.geometry.endAngle;
+
+            const majorAxisVector = new THREE.Vector3(majorAxis[0], majorAxis[1], majorAxis[2] || 0);
+            const majorRadius = majorAxisVector.length();
+            const rotation = Math.atan2(majorAxisVector.y, majorAxisVector.x);
+
+            const curve = new THREE.EllipseCurve(
+                0, 0, // x, y center (relative to mesh position)
+                majorRadius, majorRadius * minorAxisRatio, // xRadius, yRadius
+                startAngle, endAngle, // startAngle, endAngle
+                false, // clockwise
+                rotation // rotation
+            );
+            const points = curve.getPoints(128);
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            mesh = new THREE.Line(geometry, material);
+            mesh.position.set(center[0], center[1], center[2] || 0);
+        }
+        else if (entity.type === 'Point' && entity.geometry) {
+            const pos = entity.geometry.location;
+            const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0)]);
+            mesh = new THREE.Points(geometry, new THREE.PointsMaterial({ color: color, size: 5, sizeAttenuation: false }));
+            mesh.position.set(pos[0], pos[1], pos[2] || 0);
+        }
+        else if (entity.type === 'Solid' && entity.geometry) {
+            const points = entity.geometry.vertices.map(p => new THREE.Vector2(p[0], p[1]));
+            if (points.length >= 3) {
+                const shape = new THREE.Shape(points);
+                const geometry = new THREE.ShapeGeometry(shape);
+                const solidMaterial = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
+                mesh = new THREE.Mesh(geometry, solidMaterial);
+                // Solids are typically 2D, so Z is often 0 or ignored.
+                // If Z is present in vertices, it's handled by the ShapeGeometry implicitly if all Zs are the same.
+                // For varying Z, a more complex extrusion or custom geometry would be needed.
+            }
+        }
+        else if (entity.type === 'Face3D' && entity.geometry) {
+            const vertices = entity.geometry.vertices;
+            if (vertices && vertices.length >= 3) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = [];
+                for (let i = 0; i < vertices.length; i++) {
+                    positions.push(vertices[i][0], vertices[i][1], vertices[i][2] || 0);
+                }
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+                // Assuming faces are triangles or quads.
+                // For quads, we can split into two triangles.
+                const indices = [];
+                if (vertices.length === 3) {
+                    indices.push(0, 1, 2);
+                } else if (vertices.length === 4) {
+                    indices.push(0, 1, 2, 0, 2, 3); // Two triangles for a quad
+                }
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals(); // For proper lighting if using MeshStandardMaterial
+
+                const faceMaterial = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
+                mesh = new THREE.Mesh(geometry, faceMaterial);
+            }
+        }
         else if ((entity.type === 'Text' || entity.type === 'MText') && entity.geometry) {
-            mesh = createTextHelper(entity.geometry.content, entity.geometry.height, color);
-            const pos = entity.geometry.position;
+            mesh = createTextHelper(entity.geometry.text, entity.geometry.height, color);
+            const pos = entity.geometry.insertionPoint;
             mesh.position.set(pos[0], pos[1], pos[2] || 0);
             mesh.rotation.z = entity.geometry.rotation || 0;
         }
         else if (entity.type === 'Insert' && entity.geometry) {
             mesh = new THREE.Group();
-            const pos = entity.geometry.position;
+            const pos = entity.geometry.insertionPoint;
+            const origin = entity.geometry.origin || [0, 0, 0];
             const sc = entity.geometry.scale;
+
+            if (origin[0] !== 0 || origin[1] !== 0) {
+                console.log(`Block Insert [${entity.geometry.blockName}] has origin offset:`, origin);
+            }
+
             mesh.position.set(pos[0], pos[1], pos[2] || 0);
             mesh.scale.set(sc[0], sc[1], sc[2] || 1);
             mesh.rotation.z = entity.geometry.rotation || 0;
 
-            // Draw entities inside the block recursively
+            // Create a content group to handle the block's internal origin (base point)
+            const contentGroup = new THREE.Group();
+            contentGroup.position.set(-origin[0], -origin[1], -origin[2] || 0);
+            mesh.add(contentGroup);
+
+            if (entity.entities && entity.entities.length > 0) {
+                renderEntities(entity.entities, contentGroup);
+            }
+        }
+        else if (entity.type.startsWith('Dimension') && entity.geometry) {
+            mesh = new THREE.Group();
+            // Dimensions can be complex, for now we draw their main points/lines if available
+            // but usually they use an internal block for display.
+            // If the dimension has sub-entities (exploded/block content), they'll be rendered here.
             if (entity.entities && entity.entities.length > 0) {
                 renderEntities(entity.entities, mesh);
             }
         }
+        else if (entity.type === 'Viewport' && entity.geometry) {
+            const geo = entity.geometry;
+            const width = geo.width;
+            const height = geo.height;
+            const center = geo.center;
+
+            // Viewports are rectangles on Layer 0 or Defpoints
+            const shape = new THREE.Shape();
+            shape.moveTo(-width / 2, -height / 2);
+            shape.lineTo(width / 2, -height / 2);
+            shape.lineTo(width / 2, height / 2);
+            shape.lineTo(-width / 2, height / 2);
+            shape.lineTo(-width / 2, -height / 2);
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(shape.getPoints());
+            mesh = new THREE.LineLoop(geometry, new THREE.LineBasicMaterial({ color: 0xFFFFFF, opacity: 0.5, transparent: true }));
+            mesh.position.set(center[0], center[1], center[2] || 0);
+        }
+        else if (entity.type === 'Leader' && entity.geometry) {
+            const points = entity.geometry.vertices.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+            if (points.length >= 2) {
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                mesh = new THREE.Line(geometry, material);
+            }
+        }
         else if (entity.type === 'Hatch' && entity.geometry) {
             mesh = new THREE.Group();
-            console.log(`Hatch ${entity.id}: Segpoints=${entity.geometry.patternLines?.length}, Paths=${entity.geometry.paths?.length}`);
-
-            // 1. Draw boundaries
-            if (entity.geometry.paths) {
-                entity.geometry.paths.forEach(path => {
+            if (entity.geometry.boundaries) {
+                entity.geometry.boundaries.forEach(path => {
                     const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
                     if (points.length > 0) {
                         const geom = new THREE.BufferGeometry().setFromPoints(points);
                         const boundaryMesh = new THREE.LineLoop(geom, new THREE.LineBasicMaterial({
-                            color: 0xFF0000,
+                            color: color,
                             transparent: true,
                             opacity: 0.5
                         }));
@@ -131,17 +247,6 @@ function renderEntities(data, parentGroup = scene) {
                 });
             }
 
-            // 2. Draw pattern lines (Exploded lines)
-            if (entity.geometry.patternLines && entity.geometry.patternLines.length > 0) {
-                const segPoints = [];
-                for (let i = 0; i < entity.geometry.patternLines.length; i++) {
-                    const p = entity.geometry.patternLines[i];
-                    segPoints.push(new THREE.Vector3(p[0], p[1], p[2] || 0));
-                }
-                const geom = new THREE.BufferGeometry().setFromPoints(segPoints);
-                const patternMesh = new THREE.LineSegments(geom, new THREE.LineBasicMaterial({ color: 0x00FFFF }));
-                mesh.add(patternMesh);
-            }
         }
 
         if (mesh) {
@@ -154,7 +259,11 @@ function renderEntities(data, parentGroup = scene) {
             }
 
             parentGroup.add(mesh);
-            if (mesh instanceof THREE.Line || mesh instanceof THREE.Mesh || mesh instanceof THREE.LineLoop || mesh instanceof THREE.Group) {
+
+            // Only add top-level objects to interact with, or specific interactive types
+            // If it's a child of a scene, it's a top-level entity.
+            // If it's a child of a Group (Insert), we want to select the Group instead.
+            if (parentGroup === scene) {
                 objectsToIntersect.push(mesh);
             }
         }
@@ -205,7 +314,7 @@ function createLayersPanel(layers) {
 
     // Create collapsible header and content
     let html = `
-        <div class="section-header" onclick="toggleLayersSection(this)">
+        <div class="section-header" onclick="toggleSection(this)">
             <span>🗂️ الطبقات (${layers?.length || 0})</span>
         </div>
         <div class="section-content" id="layers-list">
@@ -230,7 +339,49 @@ function createLayersPanel(layers) {
     layersSection.innerHTML = html;
 }
 
-function toggleLayersSection(header) {
+function displayMetadata(metadata) {
+    if (!metadata) return;
+
+    const statsSection = document.getElementById('stats-section');
+    const statsContent = document.getElementById('stats-content');
+    statsSection.style.display = 'block';
+
+    let html = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value">${metadata.TotalEntitiesFound || 0}</span>
+                <span class="stat-label">إجمالي العناصر</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">${metadata.TotalEntitiesConverted || 0}</span>
+                <span class="stat-label">تم تحويله</span>
+            </div>
+        </div>
+        <div class="stats-detail-list">
+            <h4 style="color:#a0aec0; font-size:0.8em; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">تفاصيل الأنواع (في الملف):</h4>
+    `;
+
+    if (metadata.DetailedStats_AllInFile) {
+        for (const [type, count] of Object.entries(metadata.DetailedStats_AllInFile)) {
+            const converted = metadata.DetailedStats_Converted?.[type] || 0;
+            const isFullySupported = converted === count;
+
+            html += `
+                <div class="stats-detail-item">
+                    <span class="stats-type-name">${type}</span>
+                    <span class="stats-type-count" style="color: ${isFullySupported ? '#48bb78' : '#ed8936'}">
+                        ${converted} / ${count} ${isFullySupported ? '✅' : '⚠️'}
+                    </span>
+                </div>
+            `;
+        }
+    }
+
+    html += '</div>';
+    statsContent.innerHTML = html;
+}
+
+function toggleSection(header) {
     header.classList.toggle('collapsed');
     header.nextElementSibling.classList.toggle('collapsed');
 }
@@ -476,38 +627,58 @@ function showSearchResult(message, isError) {
 }
 
 // --- 6. التحديد والتفاعل ---
-function highlightObject(mesh) {
-    // إعادة العنصر السابق لحالته الأصلية
+function highlightObject(object) {
+    // Reset previous selection
     if (selectedMesh) {
-        selectedMesh.material.color.setHex(selectedMesh.originalColor);
-        selectedMesh.material.linewidth = selectedMesh.originalLinewidth || 1;
+        selectedMesh.traverse(child => {
+            if (child.isMesh || child.isLine || child.isPoints) {
+                if (child.originalColor !== undefined) {
+                    child.material.color.setHex(child.originalColor);
+                    child.material.linewidth = child.originalLinewidth || 1;
+                }
+            }
+        });
     }
 
-    // تحديد العنصر الجديد بتأثيرات مميزة
-    if (mesh) {
-        mesh.originalColor = mesh.material.color.getHex();
-        mesh.originalLinewidth = mesh.material.linewidth || 1;
-
-        mesh.material.color.set(0xFF0000); // أحمر فاقع
-        mesh.material.linewidth = 5; // خط أتخن
-        mesh.material.needsUpdate = true;
+    // Highlight new selection
+    if (object) {
+        object.traverse(child => {
+            if (child.isMesh || child.isLine || child.isPoints) {
+                if (child.originalColor === undefined) {
+                    child.originalColor = child.material.color.getHex();
+                    child.originalLinewidth = child.material.linewidth || 1;
+                }
+                child.material.color.set(0xFF0000); // Bright Red
+                child.material.linewidth = 5;
+            }
+        });
     }
-    selectedMesh = mesh;
+    selectedMesh = object;
 }
 
 function onMouseClick(event) {
+    // Only process left-click (button 0)
+    if (event.button !== 0) return;
+
     const rect = renderer.domElement.getBoundingClientRect();
     pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    raycaster.params.Line.threshold = 5 / zoom;
+    // raycaster.params.Line.threshold = 5 / zoom; // This line was removed in the original diff, assuming it's no longer needed or handled differently.
     raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(objectsToIntersect);
+    const intersects = raycaster.intersectObjects(objectsToIntersect, true); // 'true' for recursive intersection
 
     if (intersects.length > 0) {
-        const selectedObject = intersects[0].object;
-        highlightObject(selectedObject);
-        displayProperties(selectedObject.userData);
+        let object = intersects[0].object;
+
+        // Traverse up to find the top-level selectable object (like an Insert/Group)
+        // This assumes objectsToIntersect contains the top-level selectable groups/meshes.
+        while (object.parent && object.parent !== scene && objectsToIntersect.indexOf(object) === -1) {
+            object = object.parent;
+        }
+
+        highlightObject(object);
+        displayProperties(object.userData);
     } else {
         highlightObject(null);
         document.getElementById('properties-panel').innerHTML =
@@ -525,7 +696,7 @@ uploadBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (file) {
-        fileNameSpan.textContent = `📄 ${file.name}`;
+        fileNameSpan.textContent = `📄 ${file.name} `;
         uploadDwgFile(file);
     }
 });
@@ -549,13 +720,14 @@ function uploadDwgFile(file) {
             storeLinetypes(data.linetypes);
             renderEntities(data.entities);
             createLayersPanel(data.layers);
+            displayMetadata(data.metadata);
             document.getElementById('properties-panel').innerHTML =
                 '<h3>✅ تم التحميل بنجاح</h3><p>انقر على أحد عناصر الرسم.</p>';
         })
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('properties-panel').innerHTML =
-                `<h3>❌ خطأ</h3><p>${error.message}</p>`;
+                `< h3 >❌ خطأ</h3 > <p>${error.message}</p>`;
         });
 }
 
@@ -587,6 +759,7 @@ function loadDwgFromUrl(dwgUrl) {
             storeLinetypes(data.linetypes);
             renderEntities(data.entities);
             createLayersPanel(data.layers);
+            displayMetadata(data.metadata);
             document.getElementById('properties-panel').innerHTML =
                 '<h3>✅ تم التحميل بنجاح</h3><p>انقر على أحد عناصر الرسم.</p>';
             fileNameSpan.textContent = `🌐 ملف من رابط`;
@@ -594,7 +767,7 @@ function loadDwgFromUrl(dwgUrl) {
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('properties-panel').innerHTML =
-                `<h3>❌ خطأ</h3><p>${error.message}</p>`;
+                `< h3 >❌ خطأ</h3 > <p>${error.message}</p>`;
         });
 }
 

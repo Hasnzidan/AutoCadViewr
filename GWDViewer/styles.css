@@ -21,6 +21,24 @@ body {
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-y: auto;
+    /* تم إضافة السكرول هنا */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* تحسين شكل السكرول بار للوحة الجانبية */
+#side-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+#side-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+#side-panel::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 /* البوكس الأبيض (منطقة التحكم) */
@@ -115,11 +133,8 @@ body {
 
 /* لوحة الخصائص */
 #properties-panel {
-    flex: 1;
     padding: 20px;
-    overflow-y: auto;
     color: white;
-    max-height: calc(100vh - 400px);
     min-height: 200px;
 }
 
@@ -266,27 +281,111 @@ body {
     }
 }
 
-/* Layers Section Styles */
+/* تنسيق الأقسام القابلة للطي */
 .sidebar-section {
-    padding: 15px;
+    padding: 10px 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#layers-section {
-    background: rgba(255, 255, 255, 0.03);
-}
-
-#layers-section .section-header {
+.section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
     padding: 10px 15px;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-    margin-bottom: 10px;
+    border-radius: 8px;
     color: white;
     font-weight: bold;
+    font-size: 0.95em;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.section-header::after {
+    content: '▼';
+    font-size: 0.7em;
+    transition: transform 0.3s;
+    opacity: 0.5;
+}
+
+.section-header.collapsed::after {
+    transform: rotate(-90deg);
+}
+
+.section-content {
+    padding-top: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+    transition: all 0.3s ease-in-out;
+}
+
+.section-content.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    overflow: hidden;
+    opacity: 0;
+}
+
+/* ستايل الإحصائيات */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.stat-label {
+    font-size: 0.75em;
+    color: #a0aec0;
+    text-transform: uppercase;
+}
+
+.stats-detail-list {
+    list-style: none;
+}
+
+.stats-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.stats-type-name {
+    color: #e2e8f0;
+}
+
+.stats-type-count {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+#layers-section {
+    background: transparent;
 }
 
 #layers-section .section-header:hover {
@@ -325,6 +424,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .layer-item {
