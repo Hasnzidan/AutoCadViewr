@@ -12,3 +12,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+
+# AutoCAD lock files
+*.dwl
+*.dwl2
