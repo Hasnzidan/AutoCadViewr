@@ -7,6 +7,7 @@ namespace DWGViewerAPI.Models
         public List<DwgEntity> Entities { get; set; } = new();
         public List<DwgLayer> Layers { get; set; } = new();
         public List<DwgLinetype> Linetypes { get; set; } = new();
+        public Dictionary<string, object> Metadata { get; set; } = new();
     }
 
     public class DwgLayer
