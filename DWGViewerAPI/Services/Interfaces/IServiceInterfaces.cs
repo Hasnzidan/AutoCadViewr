@@ -1,12 +1,13 @@
 using ACadSharp;
 using ACadSharp.Entities;
+using DWGViewerAPI.Models;
 using DWGViewerAPI.Models.Entities;
 
 namespace DWGViewerAPI.Services.Interfaces
 {
     public interface IDwgParserService
     {
-        List<DwgEntity> ParseDwgFile(string filePath);
+        DwgFileResult ParseDwgFile(string filePath);
     }
 
     public interface IDwgReaderService

@@ -18,6 +18,7 @@ renderer.setSize(width, height);
 container.appendChild(renderer.domElement);
 scene.background = new THREE.Color(0x222222);
 
+let linetypes = {};
 const objectsToIntersect = [];
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -35,29 +36,30 @@ function animate() {
 animate();
 
 // --- 2. دالة رسم الكائنات ---
-function renderEntities(data) {
+function renderEntities(data, parentGroup = scene) {
     data.forEach(entity => {
         let mesh;
         let color = new THREE.Color(0xCCCCCC);
+        const ltName = entity.dwgProperties.LineType || 'Continuous';
 
         if (entity.dwgProperties.Color) {
             const [r, g, b] = entity.dwgProperties.Color.split(',').map(c => parseInt(c.trim()) / 255.0);
             color = new THREE.Color(r, g, b);
         }
 
+        const material = getLinetypeMaterial(ltName, color);
+
         if (entity.type === 'Line' && entity.geometry) {
             const points = entity.geometry.points.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
             mesh = new THREE.Line(geometry, material);
         }
         else if (entity.type === 'Circle' && entity.geometry) {
             const center = entity.geometry.center;
             const radius = entity.geometry.radius;
             const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI, false, 0);
-            const points = curve.getPoints(64);
+            const points = curve.getPoints(128);
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: color });
             mesh = new THREE.LineLoop(geometry, material);
             mesh.position.set(center[0], center[1], center[2] || 0);
         }
@@ -69,20 +71,56 @@ function renderEntities(data) {
             const curve = new THREE.EllipseCurve(0, 0, radius, radius, startAngle, endAngle, false, 0);
             const points = curve.getPoints(64);
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: color });
             mesh = new THREE.Line(geometry, material);
             mesh.position.set(center[0], center[1], center[2] || 0);
+        }
+        else if (entity.type === 'LwPolyline' && entity.geometry) {
+            const points = entity.geometry.points.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            if (entity.geometry.isClosed) {
+                mesh = new THREE.LineLoop(geometry, material);
+            } else {
+                mesh = new THREE.Line(geometry, material);
+            }
+        }
+        else if ((entity.type === 'Text' || entity.type === 'MText') && entity.geometry) {
+            mesh = createTextHelper(entity.geometry.content, entity.geometry.height, color);
+            const pos = entity.geometry.position;
+            mesh.position.set(pos[0], pos[1], pos[2] || 0);
+            mesh.rotation.z = entity.geometry.rotation || 0;
+        }
+        else if (entity.type === 'Insert' && entity.geometry) {
+            mesh = new THREE.Group();
+            const pos = entity.geometry.position;
+            const sc = entity.geometry.scale;
+            mesh.position.set(pos[0], pos[1], pos[2] || 0);
+            mesh.scale.set(sc[0], sc[1], sc[2] || 1);
+            mesh.rotation.z = entity.geometry.rotation || 0;
+
+            // Draw entities inside the block recursively
+            if (entity.entities && entity.entities.length > 0) {
+                renderEntities(entity.entities, mesh);
+            }
         }
 
         if (mesh) {
             mesh.userData = entity.dwgProperties;
-            mesh.userData.entityId = entity.id; // تخزين الـ ID
-            scene.add(mesh);
-            objectsToIntersect.push(mesh);
+            mesh.userData.entityId = entity.id;
+            mesh.userData.layer = entity.dwgProperties.Layer;
+
+            if (mesh.material instanceof THREE.LineDashedMaterial) {
+                mesh.computeLineDistances();
+            }
+
+            parentGroup.add(mesh);
+            if (mesh instanceof THREE.Line || mesh instanceof THREE.Mesh || mesh instanceof THREE.LineLoop || mesh instanceof THREE.Group) {
+                objectsToIntersect.push(mesh);
+            }
         }
     });
 
-    if (objectsToIntersect.length > 0) {
+    if (parentGroup === scene && objectsToIntersect.length > 0) {
         const box = new THREE.Box3().setFromObject(scene);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
@@ -95,6 +133,116 @@ function renderEntities(data) {
         panOffset.y = 0;
         updateCamera();
     }
+}
+
+function getLinetypeMaterial(name, color) {
+    const pattern = linetypes[name];
+    if (!pattern || pattern.length === 0 || name.toLowerCase() === 'continuous') {
+        return new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
+    }
+
+    // Three.js LineDashedMaterial only supports simple patterns (dashSize, gapSize)
+    // We'll take the first non-zero dash and the first non-zero gap
+    let dashSize = 1;
+    let gapSize = 1;
+
+    for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i] > 0) dashSize = pattern[i];
+        if (pattern[i] < 0) gapSize = Math.abs(pattern[i]);
+    }
+
+    return new THREE.LineDashedMaterial({
+        color: color,
+        linewidth: 2,
+        dashSize: dashSize,
+        gapSize: gapSize,
+        scale: 1
+    });
+}
+
+function createLayersPanel(layers) {
+    const layersList = document.getElementById('layers-list');
+    layersList.innerHTML = '';
+
+    if (!layers || layers.length === 0) {
+        layersList.innerHTML = '<p class="empty-msg">لا توجد طبقات متاحة.</p>';
+        return;
+    }
+
+    layers.forEach(layer => {
+        const layerItem = document.createElement('div');
+        layerItem.className = 'layer-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'layer-checkbox';
+        checkbox.checked = layer.isVisible;
+        checkbox.onchange = (e) => toggleLayerVisibility(layer.name, e.target.checked);
+
+        const colorDot = document.createElement('div');
+        colorDot.className = 'layer-color-dot';
+        colorDot.style.backgroundColor = `rgb(${layer.color})`;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'layer-name';
+        nameSpan.textContent = layer.name;
+        nameSpan.title = layer.name;
+
+        layerItem.appendChild(checkbox);
+        layerItem.appendChild(colorDot);
+        layerItem.appendChild(nameSpan);
+        layersList.appendChild(layerItem);
+    });
+}
+
+function toggleLayerVisibility(layerName, isVisible) {
+    scene.traverse(obj => {
+        if (obj.userData && obj.userData.layer === layerName) {
+            obj.visible = isVisible;
+        }
+    });
+}
+
+function createTextHelper(text, height, color) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 64; // High resolution for texture
+    ctx.font = `${fontSize}px Arial`;
+
+    const metrics = ctx.measureText(text);
+    const textWidth = metrics.width;
+    const textHeight = fontSize * 1.2;
+
+    canvas.width = textWidth;
+    canvas.height = textHeight;
+
+    // Redraw with correct size
+    ctx.font = `${fontSize}px Arial`;
+    ctx.fillStyle = `#${color.getHexString()}`;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 0, textHeight / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide
+    });
+
+    const aspectRatio = textWidth / textHeight;
+    const planeHeight = height || 2;
+    const planeWidth = planeHeight * aspectRatio;
+
+    const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+    const mesh = new THREE.Mesh(geometry, material);
+
+    // Anchor to bottom-left (Standard CAD text behavior)
+    mesh.geometry.translate(planeWidth / 2, 0, 0);
+
+    return mesh;
 }
 
 // --- 3. دالة تصنيف الخصائص ---
@@ -350,7 +498,9 @@ function uploadDwgFile(file) {
         .then(data => {
             objectsToIntersect.forEach(obj => scene.remove(obj));
             objectsToIntersect.length = 0;
-            renderEntities(data);
+            storeLinetypes(data.linetypes);
+            renderEntities(data.entities);
+            createLayersPanel(data.layers);
             document.getElementById('properties-panel').innerHTML =
                 '<h3>✅ تم التحميل بنجاح</h3><p>انقر على أحد عناصر الرسم.</p>';
         })
@@ -372,7 +522,7 @@ loadUrlBtn.addEventListener('click', () => {
 });
 
 function loadDwgFromUrl(dwgUrl) {
-    document.getElementById('properties-panel').innerHTML = '<h3>⏳ جاري التحميل من الرابط...</h3>';
+    document.getElementById('properties-panel').innerHTML = '<h3> جاري التحميل من الرابط...</h3>';
 
     fetch('http://localhost:5183/api/dwg/parse-from-url', {
         method: 'POST',
@@ -386,7 +536,9 @@ function loadDwgFromUrl(dwgUrl) {
         .then(data => {
             objectsToIntersect.forEach(obj => scene.remove(obj));
             objectsToIntersect.length = 0;
-            renderEntities(data);
+            storeLinetypes(data.linetypes);
+            renderEntities(data.entities);
+            createLayersPanel(data.layers);
             document.getElementById('properties-panel').innerHTML =
                 '<h3>✅ تم التحميل بنجاح</h3><p>انقر على أحد عناصر الرسم.</p>';
             fileNameSpan.textContent = `🌐 ملف من رابط`;
@@ -415,6 +567,14 @@ container.addEventListener('wheel', (event) => {
     zoom = Math.max(minZoom, Math.min(zoom, 50));
     updateCamera();
 });
+
+function storeLinetypes(data) {
+    linetypes = {};
+    if (!data) return;
+    data.forEach(lt => {
+        linetypes[lt.name] = lt.pattern;
+    });
+}
 
 container.addEventListener('mousedown', (event) => {
     if (event.button === 2 || event.button === 1) {

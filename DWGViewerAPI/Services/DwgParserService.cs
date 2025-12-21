@@ -1,3 +1,4 @@
+using DWGViewerAPI.Models;
 using DWGViewerAPI.Models.Entities;
 using DWGViewerAPI.Services.Interfaces;
 
@@ -14,21 +15,54 @@ namespace DWGViewerAPI.Services
             _entityConverter = entityConverter;
         }
 
-        public List<DwgEntity> ParseDwgFile(string filePath)
+        public DwgFileResult ParseDwgFile(string filePath)
         {
-            var entities = new List<DwgEntity>();
+            var result = new DwgFileResult();
             var doc = _readerService.ReadDwg(filePath);
 
+            // Extract Layers
+            foreach (var layer in doc.Layers)
+            {
+                result.Layers.Add(new DwgLayer
+                {
+                    Name = layer.Name,
+                    Handle = layer.Handle.ToString(),
+                    Color = $"{layer.Color.R}, {layer.Color.G}, {layer.Color.B}",
+                    IsVisible = layer.IsOn,
+                    IsFrozen = false 
+                });
+            }
+
+            // Extract Linetypes
+            foreach (var lt in doc.LineTypes)
+            {
+                var dwgLt = new DwgLinetype
+                {
+                    Name = lt.Name,
+                    Description = lt.Description
+                };
+
+                // Pattern segments
+                foreach (var segment in lt.Segments)
+                {
+                    // segment.Length is the dash/gap length
+                    dwgLt.Pattern.Add(segment.Length);
+                }
+
+                result.Linetypes.Add(dwgLt);
+            }
+
+            // Extract Entities
             foreach (var entity in doc.Entities)
             {
                 var dwgEntity = _entityConverter.Convert(entity, doc);
                 if (dwgEntity != null)
                 {
-                    entities.Add(dwgEntity);
+                    result.Entities.Add(dwgEntity);
                 }
             }
 
-            return entities;
+            return result;
         }
     }
 }
