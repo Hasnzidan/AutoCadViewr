@@ -17,6 +17,8 @@ builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.LwPolylineConverter>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.TextConverter>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.InsertConverter>();
+builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.HatchConverter>();
+builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.MLineConverter>();
 
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityConverter, DWGViewerAPI.Services.EntityConverter>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IDwgReaderService, DWGViewerAPI.Services.DwgReaderService>();

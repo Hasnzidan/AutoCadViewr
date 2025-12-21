@@ -53,14 +53,25 @@ namespace DWGViewerAPI.Services
             }
 
             // Extract Entities
+            int count = 0;
+            var typeStats = new Dictionary<string, int>();
+
             foreach (var entity in doc.Entities)
             {
                 var dwgEntity = _entityConverter.Convert(entity, doc);
                 if (dwgEntity != null)
                 {
                     result.Entities.Add(dwgEntity);
+                    count++;
+                    
+                    var type = dwgEntity.Type;
+                    if (!typeStats.ContainsKey(type)) typeStats[type] = 0;
+                    typeStats[type]++;
                 }
             }
+
+            Console.WriteLine($"Parsed {count} entities. Stats: " + 
+                string.Join(", ", typeStats.Select(kv => $"{kv.Key}: {kv.Value}")));
 
             return result;
         }

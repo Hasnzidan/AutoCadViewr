@@ -40,4 +40,10 @@ namespace DWGViewerAPI.Models.Geometry
         public double Rotation { get; set; }
         public string BlockName { get; set; } = string.Empty;
     }
+
+    public class HatchGeometry
+    {
+        public List<List<double[]>> Paths { get; set; } = new();
+        public List<double[]> PatternLines { get; set; } = new(); // Each double[3] is a point, pair of points make a line
+    }
 }

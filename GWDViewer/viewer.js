@@ -54,6 +54,14 @@ function renderEntities(data, parentGroup = scene) {
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             mesh = new THREE.Line(geometry, material);
         }
+        else if (entity.type === 'MLine' && entity.geometry) {
+            // MLine: draw as connected line segments
+            const points = entity.geometry.points.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+            if (points.length >= 2) {
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                mesh = new THREE.Line(geometry, material);
+            }
+        }
         else if (entity.type === 'Circle' && entity.geometry) {
             const center = entity.geometry.center;
             const radius = entity.geometry.radius;
@@ -101,6 +109,38 @@ function renderEntities(data, parentGroup = scene) {
             // Draw entities inside the block recursively
             if (entity.entities && entity.entities.length > 0) {
                 renderEntities(entity.entities, mesh);
+            }
+        }
+        else if (entity.type === 'Hatch' && entity.geometry) {
+            mesh = new THREE.Group();
+            console.log(`Hatch ${entity.id}: Segpoints=${entity.geometry.patternLines?.length}, Paths=${entity.geometry.paths?.length}`);
+
+            // 1. Draw boundaries
+            if (entity.geometry.paths) {
+                entity.geometry.paths.forEach(path => {
+                    const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+                    if (points.length > 0) {
+                        const geom = new THREE.BufferGeometry().setFromPoints(points);
+                        const boundaryMesh = new THREE.LineLoop(geom, new THREE.LineBasicMaterial({
+                            color: 0xFF0000,
+                            transparent: true,
+                            opacity: 0.5
+                        }));
+                        mesh.add(boundaryMesh);
+                    }
+                });
+            }
+
+            // 2. Draw pattern lines (Exploded lines)
+            if (entity.geometry.patternLines && entity.geometry.patternLines.length > 0) {
+                const segPoints = [];
+                for (let i = 0; i < entity.geometry.patternLines.length; i++) {
+                    const p = entity.geometry.patternLines[i];
+                    segPoints.push(new THREE.Vector3(p[0], p[1], p[2] || 0));
+                }
+                const geom = new THREE.BufferGeometry().setFromPoints(segPoints);
+                const patternMesh = new THREE.LineSegments(geom, new THREE.LineBasicMaterial({ color: 0x00FFFF }));
+                mesh.add(patternMesh);
             }
         }
 
@@ -161,38 +201,38 @@ function getLinetypeMaterial(name, color) {
 }
 
 function createLayersPanel(layers) {
-    const layersList = document.getElementById('layers-list');
-    layersList.innerHTML = '';
+    const layersSection = document.getElementById('layers-section');
+
+    // Create collapsible header and content
+    let html = `
+        <div class="section-header" onclick="toggleLayersSection(this)">
+            <span>🗂️ الطبقات (${layers?.length || 0})</span>
+        </div>
+        <div class="section-content" id="layers-list">
+    `;
 
     if (!layers || layers.length === 0) {
-        layersList.innerHTML = '<p class="empty-msg">لا توجد طبقات متاحة.</p>';
-        return;
+        html += '<p class="empty-msg">لا توجد طبقات متاحة.</p>';
+    } else {
+        layers.forEach(layer => {
+            html += `
+                <div class="layer-item">
+                    <input type="checkbox" class="layer-checkbox" checked 
+                        onchange="toggleLayerVisibility('${layer.name}', this.checked)">
+                    <div class="layer-color-dot" style="background-color: rgb(${layer.color})"></div>
+                    <span class="layer-name" title="${layer.name}">${layer.name}</span>
+                </div>
+            `;
+        });
     }
 
-    layers.forEach(layer => {
-        const layerItem = document.createElement('div');
-        layerItem.className = 'layer-item';
+    html += '</div>';
+    layersSection.innerHTML = html;
+}
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'layer-checkbox';
-        checkbox.checked = layer.isVisible;
-        checkbox.onchange = (e) => toggleLayerVisibility(layer.name, e.target.checked);
-
-        const colorDot = document.createElement('div');
-        colorDot.className = 'layer-color-dot';
-        colorDot.style.backgroundColor = `rgb(${layer.color})`;
-
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'layer-name';
-        nameSpan.textContent = layer.name;
-        nameSpan.title = layer.name;
-
-        layerItem.appendChild(checkbox);
-        layerItem.appendChild(colorDot);
-        layerItem.appendChild(nameSpan);
-        layersList.appendChild(layerItem);
-    });
+function toggleLayersSection(header) {
+    header.classList.toggle('collapsed');
+    header.nextElementSibling.classList.toggle('collapsed');
 }
 
 function toggleLayerVisibility(layerName, isVisible) {
@@ -437,12 +477,20 @@ function showSearchResult(message, isError) {
 
 // --- 6. التحديد والتفاعل ---
 function highlightObject(mesh) {
+    // إعادة العنصر السابق لحالته الأصلية
     if (selectedMesh) {
         selectedMesh.material.color.setHex(selectedMesh.originalColor);
+        selectedMesh.material.linewidth = selectedMesh.originalLinewidth || 1;
     }
+
+    // تحديد العنصر الجديد بتأثيرات مميزة
     if (mesh) {
         mesh.originalColor = mesh.material.color.getHex();
-        mesh.material.color.set(0xFFFF00);
+        mesh.originalLinewidth = mesh.material.linewidth || 1;
+
+        mesh.material.color.set(0xFF0000); // أحمر فاقع
+        mesh.material.linewidth = 5; // خط أتخن
+        mesh.material.needsUpdate = true;
     }
     selectedMesh = mesh;
 }
