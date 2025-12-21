@@ -25,10 +25,10 @@ namespace DWGViewerAPI.Services
 
             var dwgEntity = new DwgEntity
             {
-                Id = entity.Handle.ToString(),
+                Id = entity.Handle.ToString("X"),
                 DwgProperties = new Dictionary<string, object>
                 {
-                    { "Handle", entity.Handle.ToString() },
+                    { "Handle", entity.Handle.ToString("X") },
                     { "ObjectName", entity.ObjectName },
                     { "ObjectType", entity.GetType().Name },
                     { "OwnerHandle", entity.Owner?.Handle.ToString() ?? "0" },

@@ -53,25 +53,43 @@ namespace DWGViewerAPI.Services
             }
 
             // Extract Entities
-            int count = 0;
-            var typeStats = new Dictionary<string, int>();
+            var allStats = new Dictionary<string, int>();
+            var convertedStats = new Dictionary<string, int>();
+            int totalEntities = 0;
+            int convertedCount = 0;
 
             foreach (var entity in doc.Entities)
             {
+                totalEntities++;
+                // Get the base class name or specific type for raw stats
+                string rawType = entity.GetType().Name; 
+                
+                // Normalizing names for UI statistics mapping
+                if (rawType == "TextEntity") rawType = "Text";
+                if (rawType == "LwPolyline") rawType = "Polyline";
+                if (rawType == "TableEntity") rawType = "Table";
+                
+                if (!allStats.ContainsKey(rawType)) allStats[rawType] = 0;
+                allStats[rawType]++;
+
                 var dwgEntity = _entityConverter.Convert(entity, doc);
                 if (dwgEntity != null)
                 {
                     result.Entities.Add(dwgEntity);
-                    count++;
+                    convertedCount++;
                     
-                    var type = dwgEntity.Type;
-                    if (!typeStats.ContainsKey(type)) typeStats[type] = 0;
-                    typeStats[type]++;
+                    // Use rawType for stats to match the 'allStats' key exactly
+                    if (!convertedStats.ContainsKey(rawType)) convertedStats[rawType] = 0;
+                    convertedStats[rawType]++;
                 }
             }
 
-            Console.WriteLine($"Parsed {count} entities. Stats: " + 
-                string.Join(", ", typeStats.Select(kv => $"{kv.Key}: {kv.Value}")));
+            result.Metadata["TotalEntitiesFound"] = totalEntities;
+            result.Metadata["TotalEntitiesConverted"] = convertedCount;
+            result.Metadata["DetailedStats_AllInFile"] = allStats;
+            result.Metadata["DetailedStats_Converted"] = convertedStats;
+
+            Console.WriteLine($"Parsed {convertedCount}/{totalEntities} entities.");
 
             return result;
         }
