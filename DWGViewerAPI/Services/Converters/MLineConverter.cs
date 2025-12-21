@@ -15,8 +15,8 @@ namespace DWGViewerAPI.Services.Converters
             var mline = (MLine)entity;
             result.Type = "MLine";
 
-            var geometry = new LineGeometry();
-            geometry.Points = new List<double[]>();
+            var geometry = new PolylineGeometry();
+            geometry.Vertices = new List<double[]>();
 
             // Extract vertices from MLine
             try
@@ -25,7 +25,7 @@ namespace DWGViewerAPI.Services.Converters
                 {
                     foreach (var vertex in mline.Vertices)
                     {
-                        geometry.Points.Add(new[] { vertex.Position.X, vertex.Position.Y, vertex.Position.Z });
+                        geometry.Vertices.Add(new[] { vertex.Position.X, vertex.Position.Y, vertex.Position.Z });
                     }
                 }
             }
@@ -37,7 +37,7 @@ namespace DWGViewerAPI.Services.Converters
                     dynamic dMLine = mline;
                     foreach (var v in dMLine.Vertices)
                     {
-                        geometry.Points.Add(new[] { (double)v.Position.X, (double)v.Position.Y, (double)v.Position.Z });
+                        geometry.Vertices.Add(new[] { (double)v.Position.X, (double)v.Position.Y, (double)v.Position.Z });
                     }
                 }
                 catch { }
@@ -57,7 +57,7 @@ namespace DWGViewerAPI.Services.Converters
                 result.DwgProperties.Add("Scale", 1.0);
                 result.DwgProperties.Add("Justification", "Top");
             }
-            result.DwgProperties.Add("VertexCount", geometry.Points.Count);
+            result.DwgProperties.Add("VertexCount", geometry.Vertices.Count);
             
             try
             {

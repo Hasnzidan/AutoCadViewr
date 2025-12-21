@@ -1,4 +1,3 @@
-using ACadSharp;
 using ACadSharp.Entities;
 using DWGViewerAPI.Models.Entities;
 using DWGViewerAPI.Models.Geometry;
@@ -10,109 +9,82 @@ namespace DWGViewerAPI.Services.Converters
     {
         public bool CanConvert(Entity entity) => entity is Hatch;
 
-        public void Convert(Entity entity, DwgEntity result, CadDocument doc)
+        public void Convert(Entity entity, DwgEntity result, ACadSharp.CadDocument doc)
         {
             var hatch = (Hatch)entity;
             result.Type = "Hatch";
-
-            var geometry = new HatchGeometry();
             
-            // Debug: Capture all properties to help identify missing data
-            var propNames = hatch.GetType().GetProperties().Select(p => p.Name);
-            result.DwgProperties.Add("_Debug_HatchProps", string.Join(", ", propNames));
-
-            // Extract boundary paths safely
-            try
+            var boundaries = new List<List<double[]>>();
+            
+            foreach (var boundary in hatch.Paths)
             {
-                foreach (var path in hatch.Paths)
+                var boundaryPoints = new List<double[]>();
+                
+                foreach (var edge in boundary.Edges)
                 {
-                    var loopPoints = new List<double[]>();
-                    dynamic dPath = path;
-
-                    // Try to handle Polyline-style loops
-                    try {
-                        if (dPath.Vertices != null) {
-                            foreach (var v in dPath.Vertices) {
-                                loopPoints.Add(new[] { (double)v.X, (double)v.Y, 0.0 });
-                            }
-                        }
-                    } catch {}
-
-                    // Try to handle Edge-style loops
-                    try {
-                        if (dPath.Edges != null) {
-                            foreach (var edge in dPath.Edges) {
-                                try {
-                                    // Use dynamic to get any property that looks like a point
-                                    loopPoints.Add(new[] { (double)edge.StartPoint.X, (double)edge.StartPoint.Y, 0.0 });
-                                    loopPoints.Add(new[] { (double)edge.EndPoint.X, (double)edge.EndPoint.Y, 0.0 });
-                                } catch {
-                                    try {
-                                        loopPoints.Add(new[] { (double)edge.Center.X, (double)edge.Center.Y, 0.0 });
-                                    } catch {}
-                                }
-                            }
-                        }
-                    } catch {}
-
-                    if (loopPoints.Count > 0) geometry.Paths.Add(loopPoints);
-                }
-            }
-            catch { }
-
-            // Try to get hatch lines via Explode safely
-            int explodedCount = 0;
-            try
-            {
-                var explodeMethod = hatch.GetType().GetMethod("Explode");
-                if (explodeMethod != null)
-                {
-                    var explodedEntities = explodeMethod.Invoke(hatch, null) as System.Collections.IEnumerable;
-                    if (explodedEntities != null)
+                    if (edge is Hatch.BoundaryPath.Line line)
                     {
-                        foreach (var exp in explodedEntities)
+                        boundaryPoints.Add(new[] { line.Start.X, line.Start.Y });
+                        boundaryPoints.Add(new[] { line.End.X, line.End.Y });
+                    }
+                    else if (edge is Hatch.BoundaryPath.Arc arc)
+                    {
+                        int segments = 16;
+                        for (int i = 0; i <= segments; i++)
                         {
-                            explodedCount++;
-                            dynamic dExp = exp;
-                            try {
-                                geometry.PatternLines.Add(new[] { (double)dExp.StartPoint.X, (double)dExp.StartPoint.Y, (double)dExp.StartPoint.Z });
-                                geometry.PatternLines.Add(new[] { (double)dExp.EndPoint.X, (double)dExp.EndPoint.Y, (double)dExp.EndPoint.Z });
-                            } catch {}
+                            double angle = arc.StartAngle + (arc.EndAngle - arc.StartAngle) * i / segments;
+                            double x = arc.Center.X + arc.Radius * Math.Cos(angle);
+                            double y = arc.Center.Y + arc.Radius * Math.Sin(angle);
+                            boundaryPoints.Add(new[] { x, y });
+                        }
+                    }
+                    else if (edge is Hatch.BoundaryPath.Ellipse ellipse)
+                    {
+                        int segments = 64;
+                        var center = ellipse.Center;
+                        var majorAxis = ellipse.MajorAxisEndPoint; 
+                        
+                        dynamic dynamicEllipse = ellipse;
+                        double ratio = 1.0;
+                        try { ratio = (double)dynamicEllipse.MinorAxisRatio; } catch { }
+                        try { if (ratio == 1.0) ratio = (double)dynamicEllipse.Ratio; } catch { }
+
+                        // Minor axis vector
+                        double minorX = -majorAxis.Y * ratio;
+                        double minorY = majorAxis.X * ratio;
+
+                        for (int i = 0; i <= segments; i++)
+                        {
+                            double angle = ellipse.StartAngle + (ellipse.EndAngle - ellipse.StartAngle) * i / segments;
+                            double cos = Math.Cos(angle);
+                            double sin = Math.Sin(angle);
+                            
+                            double x = center.X + (majorAxis.X * cos + minorX * sin);
+                            double y = center.Y + (majorAxis.Y * cos + minorY * sin);
+                            boundaryPoints.Add(new[] { x, y });
                         }
                     }
                 }
-            }
-            catch { }
-
-            // Diagnostic: Check Pattern.Lines properties
-            if (hatch.Pattern?.Lines != null && hatch.Pattern.Lines.Count > 0)
-            {
-                var firstLine = hatch.Pattern.Lines[0];
-                var lineProps = firstLine.GetType().GetProperties().Select(p => p.Name);
-                result.DwgProperties.Add("_PatternLineProps", string.Join(", ", lineProps));
-                result.DwgProperties.Add("_PatternLinesCount", hatch.Pattern.Lines.Count);
                 
-                // Try to extract pattern line data
-                try
+                if (boundaryPoints.Count > 0)
                 {
-                    dynamic dLine = firstLine;
-                    result.DwgProperties.Add("_PatternLine_BasePoint", $"{dLine.BasePoint.X}, {dLine.BasePoint.Y}");
-                    result.DwgProperties.Add("_PatternLine_Offset", $"{dLine.Offset.X}, {dLine.Offset.Y}");
-                    result.DwgProperties.Add("_PatternLine_Angle", dLine.Angle.ToString());
-                }
-                catch (Exception ex)
-                {
-                    result.DwgProperties.Add("_PatternLine_Error", ex.Message);
+                    boundaries.Add(boundaryPoints);
                 }
             }
+            
+            result.Geometry = new HatchGeometry
+            {
+                Boundaries = boundaries,
+                PatternName = hatch.Pattern?.Name ?? "SOLID",
+                PatternType = hatch.PatternType.ToString(),
+                IsSolid = hatch.IsSolid
+            };
 
-            result.DwgProperties.Add("PatternName", hatch.Pattern?.Name ?? "Solid");
-            result.DwgProperties.Add("PatternAngle", hatch.PatternAngle);
-            result.DwgProperties.Add("PatternScale", hatch.PatternScale);
+            result.DwgProperties.Add("PatternName", hatch.Pattern?.Name ?? "SOLID");
+            result.DwgProperties.Add("PatternType", hatch.PatternType.ToString());
             result.DwgProperties.Add("IsSolid", hatch.IsSolid);
-            result.DwgProperties.Add("_ExplodedCount", explodedCount);
-
-            result.Geometry = geometry;
+            result.DwgProperties.Add("Associative", hatch.IsAssociative);
+            result.DwgProperties.Add("BoundaryCount", boundaries.Count);
         }
     }
 }

@@ -1,8 +1,10 @@
-using ACadSharp;
 using ACadSharp.Entities;
 using DWGViewerAPI.Models.Entities;
 using DWGViewerAPI.Models.Geometry;
 using DWGViewerAPI.Services.Interfaces;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 
 namespace DWGViewerAPI.Services.Converters
 {
@@ -17,35 +19,60 @@ namespace DWGViewerAPI.Services.Converters
 
         public bool CanConvert(Entity entity) => entity is Insert;
 
-        public void Convert(Entity entity, DwgEntity result, CadDocument doc)
+        public void Convert(Entity entity, DwgEntity result, ACadSharp.CadDocument doc)
         {
             var insert = (Insert)entity;
             result.Type = "Insert";
             
             result.Geometry = new InsertGeometry
             {
-                Position = new[] { insert.InsertPoint.X, insert.InsertPoint.Y, insert.InsertPoint.Z },
+                InsertionPoint = new[] { insert.InsertPoint.X, insert.InsertPoint.Y, insert.InsertPoint.Z },
+                Origin = GetBlockOrigin(insert.Block),
                 Scale = new[] { insert.XScale, insert.YScale, insert.ZScale },
                 Rotation = insert.Rotation,
-                BlockName = insert.Block.Name
+                BlockName = insert.Block?.Name ?? ""
             };
 
-            result.DwgProperties.Add("Block Name", insert.Block.Name);
-            result.DwgProperties.Add("Rotation", insert.Rotation);
-            result.DwgProperties.Add("Scale", $"{insert.XScale}, {insert.YScale}, {insert.ZScale}");
-
-            // Resolve EntityConverter locally to avoid circular dependency
-            var entityConverter = (IEntityConverter)_serviceProvider.GetService(typeof(IEntityConverter))!;
-
-            // Convert entities inside the block
-            foreach (var blockEntity in insert.Block.Entities)
+            // نكتفي بإضافة الخصائص غير الموجودة في المحول الأساسي لتجنب الـ Conflict
+            result.DwgProperties["BlockName"] = insert.Block?.Name ?? "";
+            result.DwgProperties["ScaleFactor"] = $"{insert.XScale}, {insert.YScale}, {insert.ZScale}";
+            result.DwgProperties["RotationAngle"] = insert.Rotation * (180 / Math.PI);
+            
+            // Recursive conversion
+            if (insert.Block != null)
             {
-                var subEntity = entityConverter.Convert(blockEntity, doc);
-                if (subEntity != null)
+                var rootConverter = (IEntityConverter)_serviceProvider.GetService(typeof(IEntityConverter));
+                if (rootConverter != null)
                 {
-                    result.Entities.Add(subEntity);
+                    foreach (var childEntity in insert.Block.Entities)
+                    {
+                        var converted = rootConverter.Convert(childEntity, doc);
+                        if (converted != null)
+                        {
+                            result.Entities.Add(converted);
+                        }
+                    }
                 }
             }
+
+            if (insert.Attributes != null && insert.Attributes.Any())
+            {
+                var attributes = new Dictionary<string, string>();
+                foreach (var attr in insert.Attributes)
+                {
+                    attributes[attr.Tag] = attr.Value;
+                }
+                result.DwgProperties["Attributes"] = attributes;
+            }
+        }
+
+        private double[] GetBlockOrigin(object block)
+        {
+            if (block == null) return new[] { 0.0, 0.0, 0.0 };
+            dynamic dynamicBlock = block;
+            try { return new[] { (double)dynamicBlock.Origin.X, (double)dynamicBlock.Origin.Y, (double)dynamicBlock.Origin.Z }; } catch { }
+            try { return new[] { (double)dynamicBlock.BasePoint.X, (double)dynamicBlock.BasePoint.Y, (double)dynamicBlock.BasePoint.Z }; } catch { }
+            return new[] { 0.0, 0.0, 0.0 };
         }
     }
 }
