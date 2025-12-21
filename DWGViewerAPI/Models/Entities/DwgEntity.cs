@@ -6,5 +6,6 @@ namespace DWGViewerAPI.Models.Entities
         public string Type { get; set; } = string.Empty;
         public object Geometry { get; set; } = new { };
         public Dictionary<string, object> DwgProperties { get; set; } = new();
+        public List<DwgEntity> Entities { get; set; } = new();
     }
 }

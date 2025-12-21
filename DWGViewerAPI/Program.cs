@@ -14,6 +14,9 @@ builder.Services.AddScoped<DWGViewerAPI.Services.ColorResolver>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.LineConverter>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.CircleConverter>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.ArcConverter>();
+builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.LwPolylineConverter>();
+builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.TextConverter>();
+builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityTypeConverter, DWGViewerAPI.Services.Converters.InsertConverter>();
 
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IEntityConverter, DWGViewerAPI.Services.EntityConverter>();
 builder.Services.AddScoped<DWGViewerAPI.Services.Interfaces.IDwgReaderService, DWGViewerAPI.Services.DwgReaderService>();

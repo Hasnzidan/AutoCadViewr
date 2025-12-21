@@ -47,7 +47,7 @@ namespace DWGViewerAPI.Services
             };
 
             // استدعاء المحول الخاص بالنوع
-            converter.Convert(entity, dwgEntity);
+            converter.Convert(entity, dwgEntity, doc);
 
             return dwgEntity;
         }
