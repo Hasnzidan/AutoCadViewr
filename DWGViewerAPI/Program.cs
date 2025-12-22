@@ -1,7 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -21,12 +19,10 @@ builder.Services.AddControllers()
             .AllowNamedFloatingPointLiterals;
     });
 
-// Register Custom Services
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<DWGViewerAPI.Infrastructure.FileDownloader>();
 builder.Services.AddScoped<DWGViewerAPI.Services.ColorResolver>();
 
-// Register Entity Type Converters (Strategy Pattern)
 builder.Services.AddScoped<
     DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,
     DWGViewerAPI.Services.Converters.LineConverter
@@ -109,7 +105,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

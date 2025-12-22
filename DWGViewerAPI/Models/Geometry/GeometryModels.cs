@@ -124,7 +124,7 @@ namespace DWGViewerAPI.Models.Geometry
     public class InsertGeometry
     {
         public double[] InsertionPoint { get; set; } = new double[3];
-        public double[] Origin { get; set; } = new double[3]; // التعديل هنا
+        public double[] Origin { get; set; } = new double[3];
         public double[] Scale { get; set; } = new double[3];
         public double Rotation { get; set; }
         public string BlockName { get; set; } = string.Empty;

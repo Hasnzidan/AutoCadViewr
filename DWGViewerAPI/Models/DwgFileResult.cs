@@ -23,6 +23,6 @@ namespace DWGViewerAPI.Models
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<double> Pattern { get; set; } = new(); // dash lengths (positive = dash, negative = gap)
+        public List<double> Pattern { get; set; } = new();
     }
 }
