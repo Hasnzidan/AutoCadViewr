@@ -15,10 +15,13 @@ namespace DWGViewerAPI.Services.Converters
             result.Type = "Point";
             result.Geometry = new PointGeometry
             {
-                Location = new[] { point.Location.X, point.Location.Y, point.Location.Z }
+                Location = new[] { point.Location.X, point.Location.Y, point.Location.Z },
             };
 
-            result.DwgProperties.Add("Location", $"{point.Location.X:F2}, {point.Location.Y:F2}, {point.Location.Z:F2}");
+            result.DwgProperties.Add(
+                "Location",
+                $"{point.Location.X:F2}, {point.Location.Y:F2}, {point.Location.Z:F2}"
+            );
             result.DwgProperties.Add("Thickness", point.Thickness);
         }
     }

@@ -20,20 +20,41 @@ namespace DWGViewerAPI.Services.Converters
         {
             var dim = (Dimension)entity;
             result.Type = dim.GetType().Name;
-            
+
             if (dim is DimensionLinear linear)
             {
                 result.Geometry = new DimensionLinearGeometry
                 {
-                    ExtLine1Point = new[] { linear.FirstPoint.X, linear.FirstPoint.Y, linear.FirstPoint.Z },
-                    ExtLine2Point = new[] { linear.SecondPoint.X, linear.SecondPoint.Y, linear.SecondPoint.Z },
-                    DimLineLocation = new[] { linear.DefinitionPoint.X, linear.DefinitionPoint.Y, linear.DefinitionPoint.Z },
+                    ExtLine1Point = new[]
+                    {
+                        linear.FirstPoint.X,
+                        linear.FirstPoint.Y,
+                        linear.FirstPoint.Z,
+                    },
+                    ExtLine2Point = new[]
+                    {
+                        linear.SecondPoint.X,
+                        linear.SecondPoint.Y,
+                        linear.SecondPoint.Z,
+                    },
+                    DimLineLocation = new[]
+                    {
+                        linear.DefinitionPoint.X,
+                        linear.DefinitionPoint.Y,
+                        linear.DefinitionPoint.Z,
+                    },
                     Rotation = linear.Rotation,
-                    Measurement = linear.Measurement
+                    Measurement = linear.Measurement,
                 };
-                
-                result.DwgProperties.Add("FirstPoint", $"{linear.FirstPoint.X:F2}, {linear.FirstPoint.Y:F2}");
-                result.DwgProperties.Add("SecondPoint", $"{linear.SecondPoint.X:F2}, {linear.SecondPoint.Y:F2}");
+
+                result.DwgProperties.Add(
+                    "FirstPoint",
+                    $"{linear.FirstPoint.X:F2}, {linear.FirstPoint.Y:F2}"
+                );
+                result.DwgProperties.Add(
+                    "SecondPoint",
+                    $"{linear.SecondPoint.X:F2}, {linear.SecondPoint.Y:F2}"
+                );
                 result.DwgProperties.Add("Measurement", linear.Measurement);
                 result.DwgProperties.Add("Rotation", linear.Rotation * (180 / Math.PI));
             }
@@ -41,49 +62,108 @@ namespace DWGViewerAPI.Services.Converters
             {
                 result.Geometry = new DimensionAlignedGeometry
                 {
-                    ExtLine1Point = new[] { aligned.FirstPoint.X, aligned.FirstPoint.Y, aligned.FirstPoint.Z },
-                    ExtLine2Point = new[] { aligned.SecondPoint.X, aligned.SecondPoint.Y, aligned.SecondPoint.Z },
-                    DimLineLocation = new[] { aligned.DefinitionPoint.X, aligned.DefinitionPoint.Y, aligned.DefinitionPoint.Z },
-                    Measurement = aligned.Measurement
+                    ExtLine1Point = new[]
+                    {
+                        aligned.FirstPoint.X,
+                        aligned.FirstPoint.Y,
+                        aligned.FirstPoint.Z,
+                    },
+                    ExtLine2Point = new[]
+                    {
+                        aligned.SecondPoint.X,
+                        aligned.SecondPoint.Y,
+                        aligned.SecondPoint.Z,
+                    },
+                    DimLineLocation = new[]
+                    {
+                        aligned.DefinitionPoint.X,
+                        aligned.DefinitionPoint.Y,
+                        aligned.DefinitionPoint.Z,
+                    },
+                    Measurement = aligned.Measurement,
                 };
-                
-                result.DwgProperties.Add("FirstPoint", $"{aligned.FirstPoint.X:F2}, {aligned.FirstPoint.Y:F2}");
-                result.DwgProperties.Add("SecondPoint", $"{aligned.SecondPoint.X:F2}, {aligned.SecondPoint.Y:F2}");
+
+                result.DwgProperties.Add(
+                    "FirstPoint",
+                    $"{aligned.FirstPoint.X:F2}, {aligned.FirstPoint.Y:F2}"
+                );
+                result.DwgProperties.Add(
+                    "SecondPoint",
+                    $"{aligned.SecondPoint.X:F2}, {aligned.SecondPoint.Y:F2}"
+                );
                 result.DwgProperties.Add("Measurement", aligned.Measurement);
             }
             else if (dim is DimensionRadius radius)
             {
                 result.Geometry = new DimensionRadiusGeometry
                 {
-                    Center = new[] { radius.AngleVertex.X, radius.AngleVertex.Y, radius.AngleVertex.Z },
-                    ChordPoint = new[] { radius.DefinitionPoint.X, radius.DefinitionPoint.Y, radius.DefinitionPoint.Z },
-                    Measurement = radius.Measurement
+                    Center = new[]
+                    {
+                        radius.AngleVertex.X,
+                        radius.AngleVertex.Y,
+                        radius.AngleVertex.Z,
+                    },
+                    ChordPoint = new[]
+                    {
+                        radius.DefinitionPoint.X,
+                        radius.DefinitionPoint.Y,
+                        radius.DefinitionPoint.Z,
+                    },
+                    Measurement = radius.Measurement,
                 };
-                
-                result.DwgProperties.Add("Center", $"{radius.AngleVertex.X:F2}, {radius.AngleVertex.Y:F2}");
+
+                result.DwgProperties.Add(
+                    "Center",
+                    $"{radius.AngleVertex.X:F2}, {radius.AngleVertex.Y:F2}"
+                );
                 result.DwgProperties.Add("Measurement", radius.Measurement);
             }
             else if (dim is DimensionDiameter diameter)
             {
                 result.Geometry = new DimensionDiameterGeometry
                 {
-                    ChordPoint = new[] { diameter.AngleVertex.X, diameter.AngleVertex.Y, diameter.AngleVertex.Z },
-                    FarChordPoint = new[] { diameter.DefinitionPoint.X, diameter.DefinitionPoint.Y, diameter.DefinitionPoint.Z },
-                    Measurement = diameter.Measurement
+                    ChordPoint = new[]
+                    {
+                        diameter.AngleVertex.X,
+                        diameter.AngleVertex.Y,
+                        diameter.AngleVertex.Z,
+                    },
+                    FarChordPoint = new[]
+                    {
+                        diameter.DefinitionPoint.X,
+                        diameter.DefinitionPoint.Y,
+                        diameter.DefinitionPoint.Z,
+                    },
+                    Measurement = diameter.Measurement,
                 };
-                
+
                 result.DwgProperties.Add("Measurement", diameter.Measurement);
             }
             else if (dim is DimensionAngular3Pt angular)
             {
                 result.Geometry = new DimensionAngularGeometry
                 {
-                    CenterPoint = new[] { angular.AngleVertex.X, angular.AngleVertex.Y, angular.AngleVertex.Z },
-                    FirstPoint = new[] { angular.FirstPoint.X, angular.FirstPoint.Y, angular.FirstPoint.Z },
-                    SecondPoint = new[] { angular.SecondPoint.X, angular.SecondPoint.Y, angular.SecondPoint.Z },
-                    Measurement = angular.Measurement
+                    CenterPoint = new[]
+                    {
+                        angular.AngleVertex.X,
+                        angular.AngleVertex.Y,
+                        angular.AngleVertex.Z,
+                    },
+                    FirstPoint = new[]
+                    {
+                        angular.FirstPoint.X,
+                        angular.FirstPoint.Y,
+                        angular.FirstPoint.Z,
+                    },
+                    SecondPoint = new[]
+                    {
+                        angular.SecondPoint.X,
+                        angular.SecondPoint.Y,
+                        angular.SecondPoint.Z,
+                    },
+                    Measurement = angular.Measurement,
                 };
-                
+
                 result.DwgProperties.Add("Measurement", angular.Measurement);
             }
 
@@ -94,7 +174,8 @@ namespace DWGViewerAPI.Services.Converters
             // Recursive conversion of dimension block entities (the actual lines/texts)
             if (dim.Block != null)
             {
-                var rootConverter = (IEntityConverter)_serviceProvider.GetService(typeof(IEntityConverter));
+                var rootConverter =
+                    _serviceProvider.GetService(typeof(IEntityConverter)) as IEntityConverter;
                 if (rootConverter != null)
                 {
                     foreach (var childEntity in dim.Block.Entities)

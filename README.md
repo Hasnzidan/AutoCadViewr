@@ -68,7 +68,6 @@ AutoCadViewr/
         ├── Converters/         # المحولات الذكية (Strategy Pattern)
         │   ├── LineConverter.cs
         │   ├── CircleConverter.cs
-        │   ├── ArcConverter.cs
         │   ├── LwPolylineConverter.cs
         │   ├── TextConverter.cs
         │   ├── InsertConverter.cs

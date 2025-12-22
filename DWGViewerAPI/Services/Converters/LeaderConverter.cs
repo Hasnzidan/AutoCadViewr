@@ -14,18 +14,18 @@ namespace DWGViewerAPI.Services.Converters
             if (entity is Leader leader)
             {
                 result.Type = "Leader";
-                
+
                 var vertices = new List<double[]>();
                 foreach (var vertex in leader.Vertices)
                 {
                     vertices.Add(new[] { vertex.X, vertex.Y, vertex.Z });
                 }
-                
+
                 result.Geometry = new LeaderGeometry
                 {
                     Vertices = vertices,
                     HasArrowhead = leader.ArrowHeadEnabled,
-                    HasHookline = leader.PathType == LeaderPathType.Spline
+                    HasHookline = leader.PathType == LeaderPathType.Spline,
                 };
 
                 result.DwgProperties.Add("VertexCount", vertices.Count);
@@ -36,11 +36,11 @@ namespace DWGViewerAPI.Services.Converters
             else if (entity is MultiLeader mleader)
             {
                 result.Type = "MultiLeader";
-                
+
                 result.Geometry = new MultiLeaderGeometry
                 {
                     LandingLocation = new[] { 0.0, 0.0, 0.0 },
-                    DoglegLength = 0.0
+                    DoglegLength = 0.0,
                 };
 
                 result.DwgProperties.Add("LeaderLineType", mleader.PathType.ToString());

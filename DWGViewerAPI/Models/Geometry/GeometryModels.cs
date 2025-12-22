@@ -18,6 +18,7 @@ namespace DWGViewerAPI.Models.Geometry
         public double Radius { get; set; }
         public double StartAngle { get; set; }
         public double EndAngle { get; set; }
+        public double[] Normal { get; set; } = new[] { 0.0, 0.0, 1.0 };
     }
 
     public class PolylineGeometry

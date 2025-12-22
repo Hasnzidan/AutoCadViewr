@@ -2,9 +2,6 @@ using ACadSharp.Entities;
 using DWGViewerAPI.Models.Entities;
 using DWGViewerAPI.Models.Geometry;
 using DWGViewerAPI.Services.Interfaces;
-using System.Linq;
-using System.Collections.Generic;
-using System;
 
 namespace DWGViewerAPI.Services.Converters
 {
@@ -23,25 +20,27 @@ namespace DWGViewerAPI.Services.Converters
         {
             var insert = (Insert)entity;
             result.Type = "Insert";
-            
+
             result.Geometry = new InsertGeometry
             {
-                InsertionPoint = new[] { insert.InsertPoint.X, insert.InsertPoint.Y, insert.InsertPoint.Z },
+                InsertionPoint = [insert.InsertPoint.X, insert.InsertPoint.Y, insert.InsertPoint.Z],
                 Origin = GetBlockOrigin(insert.Block),
-                Scale = new[] { insert.XScale, insert.YScale, insert.ZScale },
+                Scale = [insert.XScale, insert.YScale, insert.ZScale],
                 Rotation = insert.Rotation,
-                BlockName = insert.Block?.Name ?? ""
+                BlockName = insert.Block?.Name ?? "",
             };
 
             // نكتفي بإضافة الخصائص غير الموجودة في المحول الأساسي لتجنب الـ Conflict
             result.DwgProperties["BlockName"] = insert.Block?.Name ?? "";
-            result.DwgProperties["ScaleFactor"] = $"{insert.XScale}, {insert.YScale}, {insert.ZScale}";
+            result.DwgProperties["ScaleFactor"] =
+                $"{insert.XScale}, {insert.YScale}, {insert.ZScale}";
             result.DwgProperties["RotationAngle"] = insert.Rotation * (180 / Math.PI);
-            
+
             // Recursive conversion
             if (insert.Block != null)
             {
-                var rootConverter = (IEntityConverter)_serviceProvider.GetService(typeof(IEntityConverter));
+                var rootConverter =
+                    _serviceProvider.GetService(typeof(IEntityConverter)) as IEntityConverter;
                 if (rootConverter != null)
                 {
                     foreach (var childEntity in insert.Block.Entities)
@@ -68,11 +67,30 @@ namespace DWGViewerAPI.Services.Converters
 
         private double[] GetBlockOrigin(object block)
         {
-            if (block == null) return new[] { 0.0, 0.0, 0.0 };
+            if (block == null)
+                return [0.0, 0.0, 0.0];
             dynamic dynamicBlock = block;
-            try { return new[] { (double)dynamicBlock.Origin.X, (double)dynamicBlock.Origin.Y, (double)dynamicBlock.Origin.Z }; } catch { }
-            try { return new[] { (double)dynamicBlock.BasePoint.X, (double)dynamicBlock.BasePoint.Y, (double)dynamicBlock.BasePoint.Z }; } catch { }
-            return new[] { 0.0, 0.0, 0.0 };
+            try
+            {
+                return
+                [
+                    (double)dynamicBlock.Origin.X,
+                    (double)dynamicBlock.Origin.Y,
+                    (double)dynamicBlock.Origin.Z,
+                ];
+            }
+            catch { }
+            try
+            {
+                return
+                [
+                    (double)dynamicBlock.BasePoint.X,
+                    (double)dynamicBlock.BasePoint.Y,
+                    (double)dynamicBlock.BasePoint.Z,
+                ];
+            }
+            catch { }
+            return [0.0, 0.0, 0.0];
         }
     }
 }

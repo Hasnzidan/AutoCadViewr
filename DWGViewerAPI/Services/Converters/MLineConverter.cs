@@ -25,7 +25,9 @@ namespace DWGViewerAPI.Services.Converters
                 {
                     foreach (var vertex in mline.Vertices)
                     {
-                        geometry.Vertices.Add(new[] { vertex.Position.X, vertex.Position.Y, vertex.Position.Z });
+                        geometry.Vertices.Add(
+                            new[] { vertex.Position.X, vertex.Position.Y, vertex.Position.Z }
+                        );
                     }
                 }
             }
@@ -37,7 +39,14 @@ namespace DWGViewerAPI.Services.Converters
                     dynamic dMLine = mline;
                     foreach (var v in dMLine.Vertices)
                     {
-                        geometry.Vertices.Add(new[] { (double)v.Position.X, (double)v.Position.Y, (double)v.Position.Z });
+                        geometry.Vertices.Add(
+                            new[]
+                            {
+                                (double)v.Position.X,
+                                (double)v.Position.Y,
+                                (double)v.Position.Z,
+                            }
+                        );
                     }
                 }
                 catch { }
@@ -58,7 +67,7 @@ namespace DWGViewerAPI.Services.Converters
                 result.DwgProperties.Add("Justification", "Top");
             }
             result.DwgProperties.Add("VertexCount", geometry.Vertices.Count);
-            
+
             try
             {
                 result.DwgProperties.Add("StyleName", mline.Style?.Name ?? "STANDARD");

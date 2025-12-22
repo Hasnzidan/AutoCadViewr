@@ -21,8 +21,8 @@ namespace DWGViewerAPI.Services.Converters
                         new[] { solid.FirstCorner.X, solid.FirstCorner.Y, solid.FirstCorner.Z },
                         new[] { solid.SecondCorner.X, solid.SecondCorner.Y, solid.SecondCorner.Z },
                         new[] { solid.ThirdCorner.X, solid.ThirdCorner.Y, solid.ThirdCorner.Z },
-                        new[] { solid.FourthCorner.X, solid.FourthCorner.Y, solid.FourthCorner.Z }
-                    }
+                        new[] { solid.FourthCorner.X, solid.FourthCorner.Y, solid.FourthCorner.Z },
+                    },
                 };
 
                 result.DwgProperties.Add("Thickness", solid.Thickness);
@@ -37,9 +37,9 @@ namespace DWGViewerAPI.Services.Converters
                         new[] { face.FirstCorner.X, face.FirstCorner.Y, face.FirstCorner.Z },
                         new[] { face.SecondCorner.X, face.SecondCorner.Y, face.SecondCorner.Z },
                         new[] { face.ThirdCorner.X, face.ThirdCorner.Y, face.ThirdCorner.Z },
-                        new[] { face.FourthCorner.X, face.FourthCorner.Y, face.FourthCorner.Z }
+                        new[] { face.FourthCorner.X, face.FourthCorner.Y, face.FourthCorner.Z },
                     },
-                    EdgeFlags = face.Flags
+                    EdgeFlags = face.Flags,
                 };
 
                 result.DwgProperties.Add("EdgeFlags", face.Flags.ToString());

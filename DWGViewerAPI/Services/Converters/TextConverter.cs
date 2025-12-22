@@ -16,13 +16,18 @@ namespace DWGViewerAPI.Services.Converters
                 result.Type = "Text";
                 result.Geometry = new TextGeometry
                 {
-                    InsertionPoint = new[] { text.InsertPoint.X, text.InsertPoint.Y, text.InsertPoint.Z },
+                    InsertionPoint = new[]
+                    {
+                        text.InsertPoint.X,
+                        text.InsertPoint.Y,
+                        text.InsertPoint.Z,
+                    },
                     Text = text.Value,
                     Height = text.Height,
                     Rotation = text.Rotation,
                     WidthFactor = text.WidthFactor,
                     HorizontalAlignment = text.HorizontalAlignment.ToString(),
-                    VerticalAlignment = text.VerticalAlignment.ToString()
+                    VerticalAlignment = text.VerticalAlignment.ToString(),
                 };
 
                 result.DwgProperties.Add("Text", text.Value);
@@ -30,7 +35,10 @@ namespace DWGViewerAPI.Services.Converters
                 result.DwgProperties.Add("Rotation", text.Rotation * (180 / Math.PI));
                 result.DwgProperties.Add("WidthFactor", text.WidthFactor);
                 result.DwgProperties.Add("Style", text.Style?.Name ?? "Standard");
-                result.DwgProperties.Add("HorizontalAlignment", text.HorizontalAlignment.ToString());
+                result.DwgProperties.Add(
+                    "HorizontalAlignment",
+                    text.HorizontalAlignment.ToString()
+                );
                 result.DwgProperties.Add("VerticalAlignment", text.VerticalAlignment.ToString());
             }
             else if (entity is MText mtext)
@@ -38,12 +46,17 @@ namespace DWGViewerAPI.Services.Converters
                 result.Type = "MText";
                 result.Geometry = new MTextGeometry
                 {
-                    InsertionPoint = new[] { mtext.InsertPoint.X, mtext.InsertPoint.Y, mtext.InsertPoint.Z },
+                    InsertionPoint = new[]
+                    {
+                        mtext.InsertPoint.X,
+                        mtext.InsertPoint.Y,
+                        mtext.InsertPoint.Z,
+                    },
                     Text = mtext.Value,
                     Height = mtext.Height,
                     Rotation = mtext.Rotation,
                     RectangleWidth = mtext.RectangleWidth,
-                    AttachmentPoint = mtext.AttachmentPoint.ToString()
+                    AttachmentPoint = mtext.AttachmentPoint.ToString(),
                 };
 
                 result.DwgProperties.Add("Text", mtext.Value);

@@ -17,9 +17,12 @@ namespace DWGViewerAPI.Infrastructure
 
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
-            
-            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            
+
+            using var response = await _httpClient.GetAsync(
+                url,
+                HttpCompletionOption.ResponseHeadersRead
+            );
+
             if (response.StatusCode == HttpStatusCode.Forbidden)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
@@ -31,7 +34,12 @@ namespace DWGViewerAPI.Infrastructure
 
             response.EnsureSuccessStatusCode();
 
-            using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            using var fileStream = new FileStream(
+                tempPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None
+            );
             await response.Content.CopyToAsync(fileStream);
 
             return tempPath;

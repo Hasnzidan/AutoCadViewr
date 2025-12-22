@@ -76,13 +76,46 @@ function renderEntities(data, parentGroup = scene) {
         else if (entity.type === 'Arc' && entity.geometry) {
             const center = entity.geometry.center;
             const radius = entity.geometry.radius;
-            const startAngle = entity.geometry.startAngle;
-            const endAngle = entity.geometry.endAngle;
-            const curve = new THREE.EllipseCurve(0, 0, radius, radius, startAngle, endAngle, false, 0);
-            const points = curve.getPoints(64);
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            mesh = new THREE.Line(geometry, material);
+            let startAngle = entity.geometry.startAngle;
+            let endAngle = entity.geometry.endAngle;
+            const normal = entity.geometry.normal || [0, 0, 1];
+
+            // Ensure angles are in valid range [0, 2π]
+            // Normalize to [0, 2π)
+            startAngle = ((startAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+            endAngle = ((endAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+            // Calculate arc angle
+            let arcAngle = endAngle - startAngle;
+            if (arcAngle <= 0) {
+                arcAngle += 2 * Math.PI;
+            }
+
+            // Safety check: ensure we're not creating a full circle (arc angle should be < 2π)
+            if (arcAngle >= 2 * Math.PI - 0.01) {
+                // This is essentially a full circle, handle as circle
+                const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI, false, 0);
+                const points = curve.getPoints(128);
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                mesh = new THREE.LineLoop(geometry, material);
+            } else {
+                // Create arc with proper start and end angles
+                const curve = new THREE.EllipseCurve(0, 0, radius, radius, startAngle, endAngle, false, 0);
+                const points = curve.getPoints(64);
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                mesh = new THREE.Line(geometry, material);
+            }
+
+            // Set position
             mesh.position.set(center[0], center[1], center[2] || 0);
+
+            // Align to Normal (OCS)
+            const targetNormal = new THREE.Vector3(normal[0], normal[1], normal[2]).normalize();
+            const defaultNormal = new THREE.Vector3(0, 0, 1);
+            if (Math.abs(targetNormal.z - 1) > 0.001) {
+                // If not standard Z normal, rotate
+                mesh.quaternion.setFromUnitVectors(defaultNormal, targetNormal);
+            }
         }
         else if ((entity.type === 'LwPolyline' || entity.type === 'Polyline') && entity.geometry) {
             const points = entity.geometry.vertices.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
@@ -198,9 +231,6 @@ function renderEntities(data, parentGroup = scene) {
         }
         else if (entity.type.startsWith('Dimension') && entity.geometry) {
             mesh = new THREE.Group();
-            // Dimensions can be complex, for now we draw their main points/lines if available
-            // but usually they use an internal block for display.
-            // If the dimension has sub-entities (exploded/block content), they'll be rendered here.
             if (entity.entities && entity.entities.length > 0) {
                 renderEntities(entity.entities, mesh);
             }
@@ -290,8 +320,6 @@ function getLinetypeMaterial(name, color) {
         return new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
     }
 
-    // Three.js LineDashedMaterial only supports simple patterns (dashSize, gapSize)
-    // We'll take the first non-zero dash and the first non-zero gap
     let dashSize = 1;
     let gapSize = 1;
 
@@ -495,7 +523,7 @@ function displayProperties(properties) {
     const propertiesPanel = document.getElementById('properties-panel');
     const categories = categorizeProperties(properties);
 
-    let htmlContent = '<h3>📋 معلومات الكائن</h3>';
+    let htmlContent = '<h3>📋 معلومات العنصر</h3>';
 
     for (const [categoryName, keys] of Object.entries(categories)) {
         htmlContent += `
@@ -704,7 +732,7 @@ fileInput.addEventListener('change', (event) => {
 function uploadDwgFile(file) {
     const formData = new FormData();
     formData.append('file', file);
-    document.getElementById('properties-panel').innerHTML = '<h3>⏳ جاري تحميل الملف...</h3>';
+    document.getElementById('properties-panel').innerHTML = '<h3> جاري تحميل الملف...</h3>';
 
     fetch('http://localhost:5183/api/dwg/upload', {
         method: 'POST',

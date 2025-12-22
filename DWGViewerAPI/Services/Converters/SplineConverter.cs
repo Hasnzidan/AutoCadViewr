@@ -13,21 +13,21 @@ namespace DWGViewerAPI.Services.Converters
         {
             var spline = (Spline)entity;
             result.Type = "Spline";
-            
+
             var controlPoints = new List<double[]>();
             foreach (var point in spline.ControlPoints)
             {
                 controlPoints.Add(new[] { point.X, point.Y, point.Z });
             }
-            
+
             var fitPoints = new List<double[]>();
             foreach (var point in spline.FitPoints)
             {
                 fitPoints.Add(new[] { point.X, point.Y, point.Z });
             }
-            
+
             var knots = spline.Knots.ToList();
-            
+
             result.Geometry = new SplineGeometry
             {
                 ControlPoints = controlPoints,
@@ -36,7 +36,7 @@ namespace DWGViewerAPI.Services.Converters
                 Degree = spline.Degree,
                 IsClosed = spline.Flags.HasFlag(SplineFlags.Closed),
                 IsPeriodic = spline.Flags.HasFlag(SplineFlags.Periodic),
-                IsRational = spline.Flags.HasFlag(SplineFlags.Rational)
+                IsRational = spline.Flags.HasFlag(SplineFlags.Rational),
             };
 
             result.DwgProperties.Add("Degree", spline.Degree);

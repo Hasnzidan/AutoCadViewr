@@ -15,9 +15,10 @@ namespace DWGViewerAPI.Controllers
         private readonly ILogger<DwgController> _logger;
 
         public DwgController(
-            IDwgParserService parserService, 
+            IDwgParserService parserService,
             FileDownloader fileDownloader,
-            ILogger<DwgController> logger)
+            ILogger<DwgController> logger
+        )
         {
             _parserService = parserService;
             _fileDownloader = fileDownloader;
@@ -44,7 +45,9 @@ namespace DWGViewerAPI.Controllers
                 var result = _parserService.ParseDwgFile(tempPath);
                 System.IO.File.Delete(tempPath);
 
-                _logger.LogInformation($"Successfully parsed {result.Entities.Count} entities from {file.FileName}");
+                _logger.LogInformation(
+                    $"Successfully parsed {result.Entities.Count} entities from {file.FileName}"
+                );
                 return Ok(result);
             }
             catch (Exception ex)
@@ -63,7 +66,9 @@ namespace DWGViewerAPI.Controllers
             try
             {
                 var result = _parserService.ParseDwgFile(filePath);
-                _logger.LogInformation($"Successfully parsed {result.Entities.Count} entities from {filePath}");
+                _logger.LogInformation(
+                    $"Successfully parsed {result.Entities.Count} entities from {filePath}"
+                );
                 return Ok(result);
             }
             catch (Exception ex)
@@ -74,7 +79,9 @@ namespace DWGViewerAPI.Controllers
         }
 
         [HttpPost("parse-from-url")]
-        public async Task<IActionResult> ParseFromUrl([FromBody] DWGViewerAPI.Models.Requests.UrlRequest request)
+        public async Task<IActionResult> ParseFromUrl(
+            [FromBody] DWGViewerAPI.Models.Requests.UrlRequest request
+        )
         {
             if (string.IsNullOrEmpty(request.Url))
                 return BadRequest(new { error = "URL is required" });
@@ -85,7 +92,9 @@ namespace DWGViewerAPI.Controllers
                 var result = _parserService.ParseDwgFile(tempPath);
                 System.IO.File.Delete(tempPath);
 
-                _logger.LogInformation($"Successfully parsed {result.Entities.Count} entities from URL");
+                _logger.LogInformation(
+                    $"Successfully parsed {result.Entities.Count} entities from URL"
+                );
                 return Ok(result);
             }
             catch (Exception ex)

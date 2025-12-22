@@ -18,14 +18,16 @@ namespace DWGViewerAPI.Services
                 // Simple default for now
                 return new ACadSharp.Color(255, 255, 255);
             }
-            
+
             return color;
         }
 
         public string GetColorMethodName(ACadSharp.Color color)
         {
-            if (color.IsByLayer) return "ByLayer";
-            if (color.IsByBlock) return "ByBlock";
+            if (color.IsByLayer)
+                return "ByLayer";
+            if (color.IsByBlock)
+                return "ByBlock";
             return "Direct";
         }
     }

@@ -10,7 +10,10 @@ namespace DWGViewerAPI.Services
         private readonly ColorResolver _colorResolver;
         private readonly IEnumerable<IEntityTypeConverter> _typeConverters;
 
-        public EntityConverter(ColorResolver colorResolver, IEnumerable<IEntityTypeConverter> typeConverters)
+        public EntityConverter(
+            ColorResolver colorResolver,
+            IEnumerable<IEntityTypeConverter> typeConverters
+        )
         {
             _colorResolver = colorResolver;
             _typeConverters = typeConverters;
@@ -19,7 +22,8 @@ namespace DWGViewerAPI.Services
         public DwgEntity? Convert(Entity entity, CadDocument doc)
         {
             var converter = _typeConverters.FirstOrDefault(c => c.CanConvert(entity));
-            if (converter == null) return null; // نوع غير مدعوم حالياً
+            if (converter == null)
+                return null; // نوع غير مدعوم حالياً
 
             var actualColor = _colorResolver.Resolve(entity, doc);
 
@@ -42,8 +46,8 @@ namespace DWGViewerAPI.Services
                     { "LineType", entity.LineType?.Name ?? "Continuous" },
                     { "LineWeight", entity.LineWeight.ToString() },
                     { "IsInvisible", entity.IsInvisible },
-                    { "Transparency", entity.Transparency.ToString() }
-                }
+                    { "Transparency", entity.Transparency.ToString() ?? "0" },
+                },
             };
 
             // استدعاء المحول الخاص بالنوع

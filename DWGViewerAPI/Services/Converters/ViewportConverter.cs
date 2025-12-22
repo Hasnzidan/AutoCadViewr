@@ -13,7 +13,7 @@ namespace DWGViewerAPI.Services.Converters
         {
             var viewport = (Viewport)entity;
             result.Type = "Viewport";
-            
+
             result.Geometry = new ViewportGeometry
             {
                 Center = new[] { viewport.Center.X, viewport.Center.Y, viewport.Center.Z },
@@ -21,19 +21,28 @@ namespace DWGViewerAPI.Services.Converters
                 Height = viewport.Height,
                 ViewCenter = new[] { viewport.ViewCenter.X, viewport.ViewCenter.Y },
                 ViewHeight = viewport.ViewHeight,
-                Scale = viewport.ViewHeight > 0 ? viewport.Height / viewport.ViewHeight : 1.0
+                Scale = viewport.ViewHeight > 0 ? viewport.Height / viewport.ViewHeight : 1.0,
             };
 
             result.DwgProperties.Add("Center", $"{viewport.Center.X:F2}, {viewport.Center.Y:F2}");
             result.DwgProperties.Add("Width", viewport.Width);
             result.DwgProperties.Add("Height", viewport.Height);
-            result.DwgProperties.Add("ViewCenter", $"{viewport.ViewCenter.X:F2}, {viewport.ViewCenter.Y:F2}");
+            result.DwgProperties.Add(
+                "ViewCenter",
+                $"{viewport.ViewCenter.X:F2}, {viewport.ViewCenter.Y:F2}"
+            );
             result.DwgProperties.Add("ViewHeight", viewport.ViewHeight);
-            result.DwgProperties.Add("Scale", viewport.ViewHeight > 0 ? viewport.Height / viewport.ViewHeight : 1.0);
-            try {
+            result.DwgProperties.Add(
+                "Scale",
+                viewport.ViewHeight > 0 ? viewport.Height / viewport.ViewHeight : 1.0
+            );
+            try
+            {
                 dynamic dvp = viewport;
                 result.DwgProperties.Add("IsOn", dvp.Status != 0);
-            } catch {
+            }
+            catch
+            {
                 result.DwgProperties.Add("IsOn", true);
             }
         }

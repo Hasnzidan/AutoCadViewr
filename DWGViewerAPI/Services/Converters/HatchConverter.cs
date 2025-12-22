@@ -13,13 +13,13 @@ namespace DWGViewerAPI.Services.Converters
         {
             var hatch = (Hatch)entity;
             result.Type = "Hatch";
-            
+
             var boundaries = new List<List<double[]>>();
-            
+
             foreach (var boundary in hatch.Paths)
             {
                 var boundaryPoints = new List<double[]>();
-                
+
                 foreach (var edge in boundary.Edges)
                 {
                     if (edge is Hatch.BoundaryPath.Line line)
@@ -32,7 +32,8 @@ namespace DWGViewerAPI.Services.Converters
                         int segments = 16;
                         for (int i = 0; i <= segments; i++)
                         {
-                            double angle = arc.StartAngle + (arc.EndAngle - arc.StartAngle) * i / segments;
+                            double angle =
+                                arc.StartAngle + (arc.EndAngle - arc.StartAngle) * i / segments;
                             double x = arc.Center.X + arc.Radius * Math.Cos(angle);
                             double y = arc.Center.Y + arc.Radius * Math.Sin(angle);
                             boundaryPoints.Add(new[] { x, y });
@@ -42,12 +43,21 @@ namespace DWGViewerAPI.Services.Converters
                     {
                         int segments = 64;
                         var center = ellipse.Center;
-                        var majorAxis = ellipse.MajorAxisEndPoint; 
-                        
+                        var majorAxis = ellipse.MajorAxisEndPoint;
+
                         dynamic dynamicEllipse = ellipse;
                         double ratio = 1.0;
-                        try { ratio = (double)dynamicEllipse.MinorAxisRatio; } catch { }
-                        try { if (ratio == 1.0) ratio = (double)dynamicEllipse.Ratio; } catch { }
+                        try
+                        {
+                            ratio = (double)dynamicEllipse.MinorAxisRatio;
+                        }
+                        catch { }
+                        try
+                        {
+                            if (ratio == 1.0)
+                                ratio = (double)dynamicEllipse.Ratio;
+                        }
+                        catch { }
 
                         // Minor axis vector
                         double minorX = -majorAxis.Y * ratio;
@@ -55,29 +65,31 @@ namespace DWGViewerAPI.Services.Converters
 
                         for (int i = 0; i <= segments; i++)
                         {
-                            double angle = ellipse.StartAngle + (ellipse.EndAngle - ellipse.StartAngle) * i / segments;
+                            double angle =
+                                ellipse.StartAngle
+                                + (ellipse.EndAngle - ellipse.StartAngle) * i / segments;
                             double cos = Math.Cos(angle);
                             double sin = Math.Sin(angle);
-                            
+
                             double x = center.X + (majorAxis.X * cos + minorX * sin);
                             double y = center.Y + (majorAxis.Y * cos + minorY * sin);
                             boundaryPoints.Add(new[] { x, y });
                         }
                     }
                 }
-                
+
                 if (boundaryPoints.Count > 0)
                 {
                     boundaries.Add(boundaryPoints);
                 }
             }
-            
+
             result.Geometry = new HatchGeometry
             {
                 Boundaries = boundaries,
                 PatternName = hatch.Pattern?.Name ?? "SOLID",
                 PatternType = hatch.PatternType.ToString(),
-                IsSolid = hatch.IsSolid
+                IsSolid = hatch.IsSolid,
             };
 
             result.DwgProperties.Add("PatternName", hatch.Pattern?.Name ?? "SOLID");

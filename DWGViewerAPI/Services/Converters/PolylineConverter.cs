@@ -7,7 +7,8 @@ namespace DWGViewerAPI.Services.Converters
 {
     public class PolylineConverter : IEntityTypeConverter
     {
-        public bool CanConvert(Entity entity) => entity is LwPolyline || entity.GetType().Name.Contains("Polyline");
+        public bool CanConvert(Entity entity) =>
+            entity is LwPolyline || entity.GetType().Name.Contains("Polyline");
 
         public void Convert(Entity entity, DwgEntity result, ACadSharp.CadDocument doc)
         {
@@ -20,7 +21,9 @@ namespace DWGViewerAPI.Services.Converters
                 geometry.IsClosed = lwPoly.IsClosed;
                 foreach (var vertex in lwPoly.Vertices)
                 {
-                    geometry.Vertices.Add(new[] { vertex.Location.X, vertex.Location.Y, lwPoly.Elevation });
+                    geometry.Vertices.Add(
+                        new[] { vertex.Location.X, vertex.Location.Y, lwPoly.Elevation }
+                    );
                     geometry.Bulges.Add(vertex.Bulge);
                 }
             }
@@ -30,11 +33,13 @@ namespace DWGViewerAPI.Services.Converters
                 try
                 {
                     // Use dynamic to check for 'Closed' property or flag
-                    geometry.IsClosed = ((int)dynamicEntity.Flags & 1) != 0; 
+                    geometry.IsClosed = ((int)dynamicEntity.Flags & 1) != 0;
                     foreach (var vertex in dynamicEntity.Vertices)
                     {
                         var pos = vertex.Position;
-                        geometry.Vertices.Add(new double[] { (double)pos.X, (double)pos.Y, (double)pos.Z });
+                        geometry.Vertices.Add(
+                            new double[] { (double)pos.X, (double)pos.Y, (double)pos.Z }
+                        );
                         geometry.Bulges.Add(0.0);
                     }
                 }

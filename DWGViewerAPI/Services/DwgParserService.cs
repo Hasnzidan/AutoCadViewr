@@ -23,24 +23,22 @@ namespace DWGViewerAPI.Services
             // Extract Layers
             foreach (var layer in doc.Layers)
             {
-                result.Layers.Add(new DwgLayer
-                {
-                    Name = layer.Name,
-                    Handle = layer.Handle.ToString(),
-                    Color = $"{layer.Color.R}, {layer.Color.G}, {layer.Color.B}",
-                    IsVisible = layer.IsOn,
-                    IsFrozen = false 
-                });
+                result.Layers.Add(
+                    new DwgLayer
+                    {
+                        Name = layer.Name,
+                        Handle = layer.Handle.ToString(),
+                        Color = $"{layer.Color.R}, {layer.Color.G}, {layer.Color.B}",
+                        IsVisible = layer.IsOn,
+                        IsFrozen = false,
+                    }
+                );
             }
 
             // Extract Linetypes
             foreach (var lt in doc.LineTypes)
             {
-                var dwgLt = new DwgLinetype
-                {
-                    Name = lt.Name,
-                    Description = lt.Description
-                };
+                var dwgLt = new DwgLinetype { Name = lt.Name, Description = lt.Description };
 
                 // Pattern segments
                 foreach (var segment in lt.Segments)
@@ -62,14 +60,18 @@ namespace DWGViewerAPI.Services
             {
                 totalEntities++;
                 // Get the base class name or specific type for raw stats
-                string rawType = entity.GetType().Name; 
-                
+                string rawType = entity.GetType().Name;
+
                 // Normalizing names for UI statistics mapping
-                if (rawType == "TextEntity") rawType = "Text";
-                if (rawType == "LwPolyline") rawType = "Polyline";
-                if (rawType == "TableEntity") rawType = "Table";
-                
-                if (!allStats.ContainsKey(rawType)) allStats[rawType] = 0;
+                if (rawType == "TextEntity")
+                    rawType = "Text";
+                if (rawType == "LwPolyline")
+                    rawType = "Polyline";
+                if (rawType == "TableEntity")
+                    rawType = "Table";
+
+                if (!allStats.ContainsKey(rawType))
+                    allStats[rawType] = 0;
                 allStats[rawType]++;
 
                 var dwgEntity = _entityConverter.Convert(entity, doc);
@@ -77,9 +79,10 @@ namespace DWGViewerAPI.Services
                 {
                     result.Entities.Add(dwgEntity);
                     convertedCount++;
-                    
+
                     // Use rawType for stats to match the 'allStats' key exactly
-                    if (!convertedStats.ContainsKey(rawType)) convertedStats[rawType] = 0;
+                    if (!convertedStats.ContainsKey(rawType))
+                        convertedStats[rawType] = 0;
                     convertedStats[rawType]++;
                 }
             }
