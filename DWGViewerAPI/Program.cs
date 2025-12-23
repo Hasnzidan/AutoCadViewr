@@ -22,6 +22,10 @@ builder.Services.AddControllers()
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<DWGViewerAPI.Infrastructure.FileDownloader>();
 builder.Services.AddScoped<DWGViewerAPI.Services.ColorResolver>();
+builder.Services.AddScoped<
+    DWGViewerAPI.Services.Interfaces.IBoundaryLoopService,
+    DWGViewerAPI.Services.BoundaryLoopService
+>();
 
 builder.Services.AddScoped<
     DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,
@@ -42,6 +46,10 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,
     DWGViewerAPI.Services.Converters.HatchConverter
+>();
+builder.Services.AddScoped<
+    DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,
+    DWGViewerAPI.Services.Converters.RegionConverter
 >();
 builder.Services.AddScoped<
     DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,

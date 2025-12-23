@@ -163,4 +163,10 @@ namespace DWGViewerAPI.Models.Geometry
         public double ViewHeight { get; set; }
         public double Scale { get; set; }
     }
+
+    public class RegionGeometry
+    {
+        public List<List<double[]>> Boundaries { get; set; } = new();
+        public bool IsSolid { get; set; } = true;
+    }
 }

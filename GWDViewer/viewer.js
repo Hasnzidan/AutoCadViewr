@@ -303,6 +303,12 @@ function renderEntities(data, parentGroup = scene) {
             }
 
         }
+        else if (entity.type === 'Region' && entity.geometry) {
+            mesh = new THREE.Group();
+            if (entity.entities && entity.entities.length > 0) {
+                renderEntities(entity.entities, mesh);
+            }
+        }
 
         if (mesh) {
             mesh.userData = entity.dwgProperties;
