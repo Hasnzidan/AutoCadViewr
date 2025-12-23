@@ -169,4 +169,12 @@ namespace DWGViewerAPI.Models.Geometry
         public List<List<double[]>> Boundaries { get; set; } = new();
         public bool IsSolid { get; set; } = true;
     }
+
+    public class WipeoutGeometry
+    {
+        public List<double[]> Boundary { get; set; } = new();
+        public bool IsClipped { get; set; } = true;
+        public string BoundaryType { get; set; } = "Polygonal";
+    }
 }
+

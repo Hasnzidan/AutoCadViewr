@@ -309,6 +309,44 @@ function renderEntities(data, parentGroup = scene) {
                 renderEntities(entity.entities, mesh);
             }
         }
+        else if (entity.type === 'Wipeout' && entity.geometry) {
+            if (entity.geometry.boundary && entity.geometry.boundary.length >= 3) {
+                // Convert to Vector2 for Shape (2D)
+                const points2D = entity.geometry.boundary.map(p => new THREE.Vector2(p[0], p[1]));
+
+                // Create shape from boundary
+                const shape = new THREE.Shape(points2D);
+                const geometry = new THREE.ShapeGeometry(shape);
+
+                // Solid white material (masking effect)
+                const fillMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xFFFFFF,  // White background
+                    side: THREE.DoubleSide,
+                    opacity: 1.0,
+                    transparent: false,
+                    depthWrite: true,
+                    depthTest: true
+                });
+
+                const fillMesh = new THREE.Mesh(geometry, fillMaterial);
+                fillMesh.renderOrder = 1000;  // Render on top to mask geometry
+
+                // Add black outline for visibility
+                const points3D = entity.geometry.boundary.map(p => new THREE.Vector3(p[0], p[1], 0));
+                const lineGeom = new THREE.BufferGeometry().setFromPoints(points3D);
+                const lineMesh = new THREE.LineLoop(lineGeom, new THREE.LineBasicMaterial({
+                    color: 0x000000,  // Black outline
+                    linewidth: 1
+                }));
+                lineMesh.renderOrder = 1001;  // Outline on top of fill
+
+                // Group fill and outline
+                const group = new THREE.Group();
+                group.add(fillMesh);
+                group.add(lineMesh);
+                mesh = group;
+            }
+        }
 
         if (mesh) {
             mesh.userData = entity.dwgProperties;

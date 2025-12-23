@@ -53,6 +53,10 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddScoped<
     DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,
+    DWGViewerAPI.Services.Converters.WipeoutConverter
+>();
+builder.Services.AddScoped<
+    DWGViewerAPI.Services.Interfaces.IEntityTypeConverter,
     DWGViewerAPI.Services.Converters.MLineConverter
 >();
 builder.Services.AddScoped<
