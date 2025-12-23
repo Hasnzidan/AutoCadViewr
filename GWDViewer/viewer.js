@@ -262,18 +262,43 @@ function renderEntities(data, parentGroup = scene) {
         }
         else if (entity.type === 'Hatch' && entity.geometry) {
             mesh = new THREE.Group();
-            if (entity.geometry.boundaries) {
+
+            if (entity.geometry.boundaries && entity.geometry.boundaries.length > 0) {
+                // Create filled shape for each boundary
                 entity.geometry.boundaries.forEach(path => {
-                    const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
-                    if (points.length > 0) {
-                        const geom = new THREE.BufferGeometry().setFromPoints(points);
-                        const boundaryMesh = new THREE.LineLoop(geom, new THREE.LineBasicMaterial({
-                            color: color,
-                            transparent: true,
-                            opacity: 0.5
-                        }));
-                        mesh.add(boundaryMesh);
-                    }
+                    if (path.length < 3) return; // Need at least 3 points for a shape
+
+                    // Convert to Vector2 for Shape (2D)
+                    const points2D = path.map(p => new THREE.Vector2(p[0], p[1]));
+
+                    // Create shape from points
+                    const shape = new THREE.Shape(points2D);
+
+                    // Create filled geometry
+                    const geometry = new THREE.ShapeGeometry(shape);
+
+                    // Material based on IsSolid property
+                    const fillMaterial = new THREE.MeshBasicMaterial({
+                        color: color,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: entity.geometry.isSolid ? 0.7 : 0.3, // Solid hatches more opaque
+                        depthWrite: false // Prevent z-fighting
+                    });
+
+                    const fillMesh = new THREE.Mesh(geometry, fillMaterial);
+                    mesh.add(fillMesh);
+
+                    // Also add outline for better visibility
+                    const points3D = path.map(p => new THREE.Vector3(p[0], p[1], p[2] || 0));
+                    const lineGeom = new THREE.BufferGeometry().setFromPoints(points3D);
+                    const lineMesh = new THREE.LineLoop(lineGeom, new THREE.LineBasicMaterial({
+                        color: color,
+                        transparent: true,
+                        opacity: 0.8,
+                        linewidth: 1
+                    }));
+                    mesh.add(lineMesh);
                 });
             }
 
