@@ -703,6 +703,7 @@ function searchById(handleId) {
     if (foundMesh) {
         // تحديد الكائن
         highlightObject(foundMesh);
+        zoomToObject(foundMesh);
         displayProperties(foundMesh.userData);
 
         // عرض رسالة نجاح
@@ -721,6 +722,25 @@ function showSearchResult(message, isError) {
     setTimeout(() => {
         searchResult.style.display = 'none';
     }, 3000);
+}
+
+function zoomToObject(object) {
+    if (!object) return;
+    const box = new THREE.Box3().setFromObject(object);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    camera.position.set(0, 0, 100);
+    camera.lookAt(0, 0, 0);
+    const maxDim = Math.max(size.x, size.y);
+    if (maxDim === 0) return; // تجنب القسمة على صفر
+    const padding = 1.5;
+    const newZoom = frustumSize / (maxDim * padding);
+    zoom = frustumSize / (maxDim * padding || 10);
+    zoom = Math.max(minZoom, Math.min(newZoom, 50)); // لا يتجاوز ضعف الزوم الحالي
+
+    panOffset.x = center.x;
+    panOffset.y = center.y;
+    updateCamera();
 }
 
 // --- 6. التحديد والتفاعل ---
@@ -803,7 +823,7 @@ function uploadDwgFile(file) {
     formData.append('file', file);
     document.getElementById('properties-panel').innerHTML = '<h3> جاري تحميل الملف...</h3>';
 
-    fetch('http://localhost:5183/api/dwg/upload', {
+    fetch('http://localhost:5018/api/dwg/upload', {
         method: 'POST',
         body: formData
     })
@@ -841,7 +861,7 @@ loadUrlBtn.addEventListener('click', () => {
 function loadDwgFromUrl(dwgUrl) {
     document.getElementById('properties-panel').innerHTML = '<h3> جاري التحميل من الرابط...</h3>';
 
-    fetch('http://localhost:5183/api/dwg/parse-from-url', {
+    fetch('http://localhost:5018/api/dwg/parse-from-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: dwgUrl })
