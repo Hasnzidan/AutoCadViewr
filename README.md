@@ -48,7 +48,7 @@
 
 ```text
 AutoCadViewr/
-├── 🌐 GWDViewer/               # الفرونت أند (Frontend)
+├── 🌐 DWGViewer/               # الفرونت أند (Frontend)
 │   ├── index.html              # الهيكل والواجهة
 │   ├── styles.css              # التصميم الحديث ونظام الـ Sidebar
 │   └── viewer.js               # منطق Three.js والتفاعل مع الـ API
@@ -155,7 +155,7 @@ dotnet run
 
 ### تشغيل الفرونت أند
 ```bash
-cd GWDViewer
+cd DWGViewer
 # افتح index.html في المتصفح مباشرة
 # أو استخدم Live Server في VS Code
 ```
